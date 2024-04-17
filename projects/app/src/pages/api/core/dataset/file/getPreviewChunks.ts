@@ -32,7 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           teamId,
           bucketName: BucketNameEnum.dataset,
           fileId,
-          csvFormat: true
+          csvFormat: true,
+          preview: true
         });
         // split chunks (5 chunk)
         const sliceRawText = 10 * chunkSize;

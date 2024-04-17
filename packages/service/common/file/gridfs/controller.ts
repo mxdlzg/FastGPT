@@ -2,7 +2,7 @@ import { Types, connectionMongo } from '../../mongo';
 import { BucketNameEnum } from '@fastgpt/global/common/file/constants';
 import fsp from 'fs/promises';
 import fs from 'fs';
-import { DatasetFileSchema } from '@fastgpt/global/core/dataset/type';
+import {DatasetFileSchema, DatasetSchemaType} from '@fastgpt/global/core/dataset/type';
 import { MongoFileSchema } from './schema';
 import { detectFileEncoding } from '@fastgpt/global/common/file/tools';
 import { CommonErrEnum } from '@fastgpt/global/common/error/code/common';
@@ -148,7 +148,7 @@ export async function getDownloadStream({
   };
 }
 
-export const readFileContentFromMongo = async ({
+export const readFileContentFromMongoWithUnstructured = async ({
   teamId,
   bucketName,
   fileId,
@@ -158,6 +158,32 @@ export const readFileContentFromMongo = async ({
   bucketName: `${BucketNameEnum}`;
   fileId: string;
   csvFormat?: boolean;
+}): Promise<{
+  rawText: string;
+  tables: string[];
+  images: Buffer[];
+  filename: string;
+}> => {
+
+  return {
+    filename: "", images: [], rawText: "", tables: []
+  }
+}
+
+export const readFileContentFromMongo = async ({
+  teamId,
+  bucketName,
+  fileId,
+  csvFormat = false,
+    dataset = undefined,
+  preview = false,
+}: {
+  teamId: string;
+  bucketName: `${BucketNameEnum}`;
+  fileId: string;
+  csvFormat?: boolean;
+  dataset?: DatasetSchemaType;
+  preview?: boolean;
 }): Promise<{
   rawText: string;
   filename: string;
@@ -203,13 +229,15 @@ export const readFileContentFromMongo = async ({
     encoding,
     metadata: {
       relatedId: fileId
-    }
+    },
+    dataset: dataset,
+    preview: preview
   };
 
   const { rawText } = await readFileRawContent({
     extension,
     csvFormat,
-    params
+    params,
   });
 
   if (rawText.trim()) {

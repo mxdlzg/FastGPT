@@ -11,6 +11,7 @@ import { readWordFile } from '../read/word';
 import { readCsvRawText } from '../read/csv';
 import { readPptxRawText } from '../read/pptx';
 import { readXlsxRawText } from '../read/xlsx';
+import { readUnFile } from "../read/unstructured"
 
 export const initMarkdownText = ({
   teamId,
@@ -36,7 +37,7 @@ export const initMarkdownText = ({
 export const readFileRawContent = async ({
   extension,
   csvFormat,
-  params
+  params,
 }: {
   csvFormat?: boolean;
   extension: string;
@@ -50,7 +51,7 @@ export const readFileRawContent = async ({
     case 'html':
       return readHtmlRawText(params);
     case 'pdf':
-      return readPdfFile(params);
+      return readUnFile(params);
     case 'docx':
       return readWordFile(params);
     case 'pptx':
