@@ -148,28 +148,6 @@ export async function getDownloadStream({
   };
 }
 
-export const readFileContentFromMongoWithUnstructured = async ({
-  teamId,
-  bucketName,
-  fileId,
-  csvFormat = false
-}: {
-  teamId: string;
-  bucketName: `${BucketNameEnum}`;
-  fileId: string;
-  csvFormat?: boolean;
-}): Promise<{
-  rawText: string;
-  tables: string[];
-  images: Buffer[];
-  filename: string;
-}> => {
-
-  return {
-    filename: "", images: [], rawText: "", tables: []
-  }
-}
-
 export const readFileContentFromMongo = async ({
   teamId,
   bucketName,
@@ -190,7 +168,7 @@ export const readFileContentFromMongo = async ({
 }> => {
   // read buffer
   const fileBuffer = await MongoRwaTextBuffer.findOne({ sourceId: fileId }).lean();
-  if (fileBuffer) {
+  if (fileBuffer && preview) {
     return {
       rawText: fileBuffer.rawText,
       filename: fileBuffer.metadata?.filename || ''

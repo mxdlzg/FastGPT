@@ -20,6 +20,7 @@ type TokenType = {
 type UnstructuredElementType = {
     type: string;
     text: string;
+    element_id?: string;
     metadata: {
         image_base64: string;
     };
@@ -68,8 +69,9 @@ export const readUnFile = async ({
     }
 
     //3. 请求llm-v对图片（图片和表格）进行描述 4. 将图片、表格插入mongodb
-    for (const element of pageElements){
+    const asyncQueryImages = pageElements.map(async (element: any, index) => {
         if(["Image", "Table"].includes(element.type)) {
+            addLog.info(`Begin llm image: ${element.element_id}`);
             const [llmText, mongoText] = await Promise.all([
                 queryImageDescription({
                     rawTex: element.text,
@@ -79,13 +81,35 @@ export const readUnFile = async ({
                 }),
                 initMarkdownText({
                     teamId: teamId,
-                    md: `The image related to previous description is: ![](data:image/jpeg;base64,${element.metadata.image_base64})`,
+                    md: `, The image related to previous description is: ![](data:image/jpeg;base64,${element.metadata.image_base64})`,
                     metadata: metadata,
                 })
             ]);
             element.text = llmText+mongoText+"\n";
+            addLog.info(`End llm image: ${element.element_id}`);
         }
-    }
+    })
+    await Promise.all(asyncQueryImages);
+    // for (const [index, element] of pageElements.entries()){
+    //     if(["Image", "Table"].includes(element.type)) {
+    //         addLog.info(`Begin llm image: ${element.element_id}`);
+    //         const [llmText, mongoText] = await Promise.all([
+    //             queryImageDescription({
+    //                 rawTex: element.text,
+    //                 image_base64: element.metadata.image_base64,
+    //                 model: (dataset?.agentModel || "glm-4v"),
+    //                 language: element.metadata.languages[0],
+    //             }),
+    //             initMarkdownText({
+    //                 teamId: teamId,
+    //                 md: `The image related to previous description is: ![](data:image/jpeg;base64,${element.metadata.image_base64})`,
+    //                 metadata: metadata,
+    //             })
+    //         ]);
+    //         element.text = llmText+mongoText+"\n";
+    //         addLog.info(`End llm image: ${element.element_id}`);
+    //     }
+    // }
     addLog.info("Query pdf image description and mongo end.");
 
     //5. 拼接所有文本成rawText

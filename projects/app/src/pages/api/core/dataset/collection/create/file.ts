@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { jsonRes } from '@fastgpt/service/common/response';
 import { connectToDatabase } from '@/service/mongo';
 import {
-  delFileByFileIdList,
-  readFileContentFromMongo
+  delFileByFileIdList, getFileById,
 } from '@fastgpt/service/common/file/gridfs/controller';
 import { authDataset } from '@fastgpt/service/support/permission/auth/dataset';
 import { FileIdCreateDatasetCollectionParams } from '@fastgpt/global/core/dataset/api';
@@ -12,18 +11,11 @@ import {
   DatasetCollectionTypeEnum,
   TrainingModeEnum
 } from '@fastgpt/global/core/dataset/constants';
-import { BucketNameEnum } from '@fastgpt/global/common/file/constants';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
-import { MongoImage } from '@fastgpt/service/common/file/image/schema';
-import { splitText2Chunks } from '@fastgpt/global/common/string/textSplitter';
-import { checkDatasetLimit } from '@fastgpt/service/support/permission/teamLimit';
-import { predictDataLimitLength } from '@fastgpt/global/core/dataset/utils';
-import { pushDataListToTrainingQueue } from '@fastgpt/service/core/dataset/training/controller';
-import { createTrainingUsage } from '@fastgpt/service/support/wallet/usage/controller';
-import { UsageSourceEnum } from '@fastgpt/global/support/wallet/usage/constants';
-import { getLLMModel, getVectorModel } from '@fastgpt/service/core/ai/model';
-import { hashStr } from '@fastgpt/global/common/string/tools';
-import { startTrainingQueue } from '@/service/core/dataset/training/utils';
+import {BucketNameEnum} from "@fastgpt/global/common/file/constants";
+import {MongoRwaTextBuffer} from "@fastgpt/service/common/buffer/rawText/schema";
+import {generateFileChunk} from "@/service/events/generateFileChunk";
+import {addLog} from "@fastgpt/service/common/system/log";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   const {
@@ -46,27 +38,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       datasetId: body.datasetId
     });
 
-    // 1. read file
-    const { rawText, filename } = await readFileContentFromMongo({
-      teamId,
-      bucketName: BucketNameEnum.dataset,
-      fileId
-    });
-    // 2. split chunks
-    const { chunks } = splitText2Chunks({
-      text: rawText,
-      chunkLen: chunkSize,
-      overlapRatio: trainingType === TrainingModeEnum.chunk ? 0.2 : 0,
-      customReg: chunkSplitter ? [chunkSplitter] : []
-    });
+    // 1. read filename (Without real content, in preview, just name)
+    let filename = "";
+    const fileBuffer = await MongoRwaTextBuffer.findOne({sourceId: fileId}).lean();
+    if (fileBuffer) {
+      filename = fileBuffer.metadata?.filename || ''
+    } else {
+      const file = await getFileById({bucketName: BucketNameEnum.dataset, fileId});
+      filename = file?.filename || "";
+    }
 
-    // 3. auth limit
-    await checkDatasetLimit({
-      teamId,
-      insertLen: predictDataLimitLength(trainingType, chunks)
-    });
+    if (filename == ""){
+      throw new Error("Cannot find file in upload file cache!");
+    }
 
-    await mongoSessionRun(async (session) => {
+    const collectionId = await mongoSessionRun(async (session) => {
       // 4. create collection
       const { _id: collectionId } = await createOneCollection({
         ...body,
@@ -85,61 +71,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         chunkSplitter,
         qaPrompt,
 
-        hashRawText: hashStr(rawText),
-        rawTextLength: rawText.length,
+        hashRawText: "",//hashStr(rawText),
+        rawTextLength: 0,//rawText.length,
         session
       });
-
-      // 5. create training bill
-      const { billId } = await createTrainingUsage({
-        teamId,
-        tmbId,
-        appName: filename,
-        billSource: UsageSourceEnum.training,
-        vectorModel: getVectorModel(dataset.vectorModel)?.name,
-        agentModel: getLLMModel(dataset.agentModel)?.name,
-        session
-      });
-
-      // 6. insert to training queue
-      await pushDataListToTrainingQueue({
-        teamId,
-        tmbId,
-        datasetId: dataset._id,
-        collectionId,
-        agentModel: dataset.agentModel,
-        vectorModel: dataset.vectorModel,
-        trainingMode: trainingType,
-        prompt: qaPrompt,
-        billId,
-        data: chunks.map((text, index) => ({
-          q: text,
-          chunkIndex: index
-        })),
-        session
-      });
-
-      // 7. remove related image ttl
-      await MongoImage.updateMany(
-        {
-          teamId,
-          'metadata.relatedId': fileId
-        },
-        {
-          // Remove expiredTime to avoid ttl expiration
-          $unset: {
-            expiredTime: 1
-          }
-        },
-        {
-          session
-        }
-      );
-
       return collectionId;
     });
 
-    startTrainingQueue(true);
+    generateFileChunk({
+      teamId,
+      tmbId,
+      fileId,
+      dataset,
+      chunkSize,
+      trainingType,
+      chunkSplitter,
+      collectionId,
+      qaPrompt
+    }).then(()=>{
+      addLog.info(`${filename} | generateFileChunk executed successfully.`);
+    })
 
     jsonRes(res);
   } catch (error) {

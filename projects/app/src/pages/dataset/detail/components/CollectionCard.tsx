@@ -162,6 +162,14 @@ const CollectionCard = () => {
               bg: 'myGray.50',
               borderColor: 'borderColor.low'
             };
+          }else if (collection.dataAmount == 0 && collection.trainingAmount == 0) {
+            //Waiting for the file to be read and chunked
+            return {
+              statusText: t('common.Creating'),
+              color: 'blue.600',
+              bg: 'blue.50',
+              borderColor: 'borderColor.low'
+            };
           }
           return {
             statusText: t('core.dataset.collection.status.active'),
