@@ -4,7 +4,7 @@ import axios from "axios";
 export const UnstructuredBaseUrl = process.env.UNSTRUCTURED_BASE_URL || 'http://localhost:8000'//'https://892d-47-100-114-86.ngrok-free.app';
 
 const httpClient = axios.create({
-    timeout: 100000,
+    timeout: 200000,
 })
 
 httpClient.interceptors.request.use((config) => {
@@ -16,7 +16,17 @@ const client = new UnstructuredClient({
     security: {
         apiKeyAuth: ""
     },
-    defaultClient: httpClient
+    defaultClient: httpClient,
+    retryConfig: {
+        strategy: "backoff",
+        retryConnectionErrors: true,
+        backoff: {
+            initialInterval: 10000,
+            maxInterval: 30000,
+            maxElapsedTime: 600000,
+            exponent: 1.5,
+        }
+    }
 });
 
 export const getClient = ({

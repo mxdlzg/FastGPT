@@ -45,6 +45,7 @@ export type GetTrainingQueueProps = {
 export type GetTrainingQueueResponse = {
   vectorTrainingCount: number;
   agentTrainingCount: number;
+  fileQueueCount: number;
 };
 
 /* -------------- search ---------------- */

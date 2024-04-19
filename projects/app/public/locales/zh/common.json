@@ -805,6 +805,7 @@
         "Manual mode": "手动导入",
         "QA mode": "问答拆分",
         "Vector queue": "索引排队",
+        "File queue": "文件预处理排队",
         "Waiting": "预计5分钟",
         "Website Sync": "Web 站点同步"
       },

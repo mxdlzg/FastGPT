@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Box, Flex, IconButton, useTheme, Progress } from '@chakra-ui/react';
+import {Box, Flex, IconButton, useTheme, Progress, Tooltip} from '@chakra-ui/react';
 import { useToast } from '@fastgpt/web/hooks/useToast';
 import { useQuery } from '@tanstack/react-query';
 import { getErrText } from '@fastgpt/global/common/error/utils';
@@ -41,6 +41,10 @@ export enum TabEnum {
   info = 'info',
   import = 'import'
 }
+
+const MAX_VECTOR_QUEUE_SIZE = 2000;
+const MAX_QA_QUEUE_SIZE = 500;
+const MAX_FILE_QUEUE_SIZE = 50;
 
 const Detail = ({ datasetId, currentTab }: { datasetId: string; currentTab: `${TabEnum}` }) => {
   const theme = useTheme();
@@ -94,7 +98,7 @@ const Detail = ({ datasetId, currentTab }: { datasetId: string; currentTab: `${T
     }
   });
 
-  const { data: { vectorTrainingCount = 0, agentTrainingCount = 0 } = {} } = useQuery(
+  const { data: { vectorTrainingCount = 0, agentTrainingCount = 0, fileQueueCount = 0 } = {} } = useQuery(
     ['getTrainingQueueLen'],
     () =>
       getTrainingQueueLen({
@@ -105,44 +109,83 @@ const Detail = ({ datasetId, currentTab }: { datasetId: string; currentTab: `${T
       refetchInterval: 10000
     }
   );
-  const { vectorTrainingMap, agentTrainingMap } = useMemo(() => {
+  const { vectorTrainingMap, agentTrainingMap, fileQueueMap } = useMemo(() => {
     const vectorTrainingMap = (() => {
-      if (vectorTrainingCount < 1000)
+      let vectorPercentage = vectorTrainingCount>MAX_VECTOR_QUEUE_SIZE? 0: 100 - Math.round((vectorTrainingCount / MAX_VECTOR_QUEUE_SIZE) * 100);
+
+      if (vectorPercentage > 80)
         return {
+          trainingCount: vectorTrainingCount,
+          trainingPercentage: vectorPercentage,
           colorSchema: 'green',
-          tip: t('core.dataset.training.Leisure')
+          // tip: t('core.dataset.training.Leisure')
         };
-      if (vectorTrainingCount < 10000)
+      if (vectorPercentage > 50)
         return {
+          trainingCount: vectorTrainingCount,
+          trainingPercentage: vectorPercentage,
           colorSchema: 'yellow',
-          tip: t('core.dataset.training.Waiting')
+          // tip: t('core.dataset.training.Waiting')
         };
       return {
+        trainingCount: vectorTrainingCount,
+        trainingPercentage: vectorPercentage,
         colorSchema: 'red',
-        tip: t('core.dataset.training.Full')
+        // tip: t('core.dataset.training.Full')
       };
     })();
     const agentTrainingMap = (() => {
-      if (agentTrainingCount < 100)
+      let qaPercentage = agentTrainingCount>MAX_QA_QUEUE_SIZE? 0: 100 - Math.round((agentTrainingCount / MAX_QA_QUEUE_SIZE) * 100);
+      if (qaPercentage > 80)
         return {
+          trainingCount: agentTrainingCount,
+          trainingPercentage: qaPercentage,
           colorSchema: 'green',
-          tip: t('core.dataset.training.Leisure')
+          // tip: t('core.dataset.training.Leisure')
         };
-      if (agentTrainingCount < 1000)
+      if (qaPercentage > 50)
         return {
+          trainingCount: agentTrainingCount,
+          trainingPercentage: qaPercentage,
           colorSchema: 'yellow',
-          tip: t('core.dataset.training.Waiting')
+          // tip: t('core.dataset.training.Waiting')
         };
       return {
+        trainingCount: agentTrainingCount,
+        trainingPercentage: qaPercentage,
         colorSchema: 'red',
-        tip: t('core.dataset.training.Full')
+        // tip: t('core.dataset.training.Full')
+      };
+    })();
+    const fileQueueMap = (() => {
+      let fileQueuePercentage = fileQueueCount>MAX_FILE_QUEUE_SIZE? 0: 100 - Math.round((fileQueueCount / MAX_FILE_QUEUE_SIZE) * 100);
+      if (fileQueuePercentage > 80)
+        return {
+          trainingCount: fileQueueCount,
+          trainingPercentage: fileQueuePercentage,
+          colorSchema: 'green',
+          // tip: t('core.dataset.training.Leisure')
+        };
+      if (fileQueuePercentage > 50)
+        return {
+          trainingCount: fileQueueCount,
+          trainingPercentage: fileQueuePercentage,
+          colorSchema: 'yellow',
+          // tip: t('core.dataset.training.Waiting')
+        };
+      return {
+        trainingCount: fileQueueCount,
+        trainingPercentage: fileQueuePercentage,
+        colorSchema: 'red',
+        // tip: t('core.dataset.training.Full')
       };
     })();
     return {
       vectorTrainingMap,
-      agentTrainingMap
+      agentTrainingMap,
+      fileQueueMap
     };
-  }, [agentTrainingCount, t, vectorTrainingCount]);
+  }, [agentTrainingCount, t, vectorTrainingCount, fileQueueCount]);
 
   return (
     <>
@@ -211,23 +254,38 @@ const Detail = ({ datasetId, currentTab }: { datasetId: string; currentTab: `${T
               <Box px={4}>
                 <Box mb={3}>
                   <Box fontSize={'sm'}>
-                    {t('core.dataset.training.Agent queue')}({agentTrainingMap.tip})
+                    {t('core.dataset.training.File queue')}({fileQueueMap.trainingCount})
                   </Box>
                   <Progress
-                    value={100}
-                    size={'xs'}
-                    colorScheme={agentTrainingMap.colorSchema}
-                    borderRadius={'10px'}
-                    isAnimated
-                    hasStripe
+                      value={fileQueueMap.trainingPercentage}
+                      size={'xs'}
+                      colorScheme={fileQueueMap.colorSchema}
+                      borderRadius={'10px'}
+                      isAnimated
+                      hasStripe
                   />
                 </Box>
+
                 <Box mb={3}>
                   <Box fontSize={'sm'}>
-                    {t('core.dataset.training.Vector queue')}({vectorTrainingMap.tip})
+                    {t('core.dataset.training.Agent queue')}({agentTrainingMap.trainingCount})
+                  </Box>
+                    <Progress
+                        value={agentTrainingMap.trainingPercentage}
+                        size={'xs'}
+                        colorScheme={agentTrainingMap.colorSchema}
+                        borderRadius={'10px'}
+                        isAnimated
+                        hasStripe
+                    />
+                </Box>
+
+                <Box mb={3}>
+                  <Box fontSize={'sm'}>
+                    {t('core.dataset.training.Vector queue')}({vectorTrainingMap.trainingCount})
                   </Box>
                   <Progress
-                    value={100}
+                    value={vectorTrainingMap.trainingPercentage}
                     size={'xs'}
                     colorScheme={vectorTrainingMap.colorSchema}
                     borderRadius={'10px'}

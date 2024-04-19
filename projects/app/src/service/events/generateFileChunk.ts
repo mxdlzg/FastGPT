@@ -43,6 +43,7 @@ export const generateFileChunk = async ({
     qaPrompt: string | undefined;
 }) => {
     try {
+        addLog.info(`${fileId} | generateFileChunk START.`)
         // 1. read file
         const {rawText, filename} = await readFileContentFromMongo({
             teamId,
@@ -131,6 +132,6 @@ export const generateFileChunk = async ({
         addLog.info(`${filename} | startTrainingQueue.`)
         startTrainingQueue(true);
     } catch (error) {
-        addLog.error(`Async task: Load file content error!`, {error});
+        addLog.error(`Async task: Load file ${fileId} content error!`, {error});
     }
 }

@@ -16,6 +16,7 @@ import { MongoDatasetTraining } from '@fastgpt/service/core/dataset/training/sch
   check dataset.files data. If there is no match in dataset.collections, delete it
   可能异常情况
   1. 上传了文件，未成功创建集合
+  或者创建了集合，但是读取文件（generateFileChunk.ts）执行失败的
 */
 export async function checkInvalidDatasetFiles(start: Date, end: Date) {
   let deleteFileAmount = 0;

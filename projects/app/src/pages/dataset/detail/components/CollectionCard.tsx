@@ -162,7 +162,7 @@ const CollectionCard = () => {
               bg: 'myGray.50',
               borderColor: 'borderColor.low'
             };
-          }else if (collection.dataAmount == 0 && collection.trainingAmount == 0) {
+          }else if (collection.dataAmount == 0 && collection.trainingAmount == 0 && collection.type == "file") {
             //Waiting for the file to be read and chunked
             return {
               statusText: t('common.Creating'),
@@ -275,8 +275,10 @@ const CollectionCard = () => {
   );
 
   const hasTrainingData = useMemo(
-    () => !!formatCollections.find((item) => item.trainingAmount > 0),
-    [formatCollections]
+      () => !!formatCollections.find((item) => {
+        return item.trainingAmount > 0 || (item.dataAmount == 0 && item.trainingAmount == 0 && item.type == "file")
+      }),
+      [formatCollections]
   );
   const isLoading = useMemo(
     () =>

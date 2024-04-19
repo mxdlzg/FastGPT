@@ -4,6 +4,7 @@ import { connectToDatabase } from '@/service/mongo';
 import { MongoDatasetTraining } from '@fastgpt/service/core/dataset/training/schema';
 import { authCert } from '@fastgpt/service/support/permission/auth/common';
 import { GetTrainingQueueProps } from '@/global/core/dataset/api';
+import {fileQueue} from '@fastgpt/service/common/system/systemQueue'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -30,11 +31,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const vectorTrainingCount = data.find((item) => item._id === vectorModel)?.count || 0;
     const agentTrainingCount = data.find((item) => item._id === agentModel)?.count || 0;
+    const fileQueueCount = fileQueue.size
 
     jsonRes(res, {
       data: {
         vectorTrainingCount,
-        agentTrainingCount
+        agentTrainingCount,
+        fileQueueCount
       }
     });
   } catch (err) {

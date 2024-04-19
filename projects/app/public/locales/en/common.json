@@ -804,6 +804,7 @@
         "Manual mode": "",
         "QA mode": "QA learning",
         "Vector queue": "Vector wait list",
+        "File queue": "File preprocessing list",
         "Waiting": "Waiting",
         "Website Sync": "Website Sync"
       },

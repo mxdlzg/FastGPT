@@ -16,6 +16,7 @@ import {BucketNameEnum} from "@fastgpt/global/common/file/constants";
 import {MongoRwaTextBuffer} from "@fastgpt/service/common/buffer/rawText/schema";
 import {generateFileChunk} from "@/service/events/generateFileChunk";
 import {addLog} from "@fastgpt/service/common/system/log";
+import {fileQueue} from "@fastgpt/service/common/system/systemQueue"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   const {
@@ -78,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return collectionId;
     });
 
-    generateFileChunk({
+    fileQueue.add(() => generateFileChunk({
       teamId,
       tmbId,
       fileId,
@@ -89,8 +90,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       collectionId,
       qaPrompt
     }).then(()=>{
-      addLog.info(`${filename} | generateFileChunk executed successfully.`);
-    })
+      addLog.info(`${filename} | generateFileChunk executed end.`);
+    }));
+    addLog.info(`${filename} | fileQueue added.`);
 
     jsonRes(res);
   } catch (error) {
