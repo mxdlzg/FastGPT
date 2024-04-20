@@ -6,9 +6,11 @@ import { SpeakeasyBase, SpeakeasyMetadata } from "../../../internal/utils";
 
 export class Files extends SpeakeasyBase {
     @SpeakeasyMetadata({ data: "multipart_form, content=true" })
+    // @ts-ignore
     content: Uint8Array;
 
     @SpeakeasyMetadata({ data: "multipart_form, name=files" })
+    // @ts-ignore
     fileName: string;
 }
 

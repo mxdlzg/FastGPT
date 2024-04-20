@@ -54,9 +54,12 @@ export type SDKProps = {
 };
 
 export class SDKConfiguration {
+    // @ts-ignore
     defaultClient: AxiosInstance;
     security?: shared.Security | (() => Promise<shared.Security>);
+    // @ts-ignore
     serverURL: string;
+    // @ts-ignore
     serverDefaults: any;
     language = "typescript";
     openapiDocVersion = "0.0.1";

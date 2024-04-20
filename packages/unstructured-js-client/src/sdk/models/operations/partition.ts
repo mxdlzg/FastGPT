@@ -3,14 +3,14 @@
  */
 
 import { SpeakeasyBase, SpeakeasyMetadata } from "../../../internal/utils";
-import { AxiosResponse } from "axios";
+import type { AxiosResponse } from 'axios';
 
 export class PartitionResponse extends SpeakeasyBase {
     /**
      * HTTP response content type for this operation
      */
     @SpeakeasyMetadata()
-    contentType: string;
+    contentType: string = "";
 
     /**
      * Successful Response
@@ -22,11 +22,11 @@ export class PartitionResponse extends SpeakeasyBase {
      * HTTP response status code for this operation
      */
     @SpeakeasyMetadata()
-    statusCode: number;
+    statusCode: number = 200;
 
     /**
      * Raw HTTP response; suitable for custom response parsing
      */
     @SpeakeasyMetadata()
-    rawResponse: AxiosResponse;
+    rawResponse?: AxiosResponse;
 }

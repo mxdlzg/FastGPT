@@ -8,5 +8,5 @@ export class Security extends SpeakeasyBase {
     @SpeakeasyMetadata({
         data: "security, scheme=true;type=apiKey;subtype=header;name=unstructured-api-key",
     })
-    apiKeyAuth: string;
+    apiKeyAuth: string = '';
 }

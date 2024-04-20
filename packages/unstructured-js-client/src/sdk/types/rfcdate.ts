@@ -3,6 +3,7 @@
  */
 
 export class RFCDate {
+  // @ts-ignore
   private date: Date;
 
   constructor(date: Date | { date: string } | string | undefined) {

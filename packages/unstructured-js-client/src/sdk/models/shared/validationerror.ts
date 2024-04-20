@@ -8,13 +8,16 @@ import { Expose } from "class-transformer";
 export class ValidationError extends SpeakeasyBase {
     @SpeakeasyMetadata()
     @Expose({ name: "loc" })
+    // @ts-ignore
     loc: any[];
 
     @SpeakeasyMetadata()
     @Expose({ name: "msg" })
+        // @ts-ignore
     msg: string;
 
     @SpeakeasyMetadata()
     @Expose({ name: "type" })
+        // @ts-ignore
     type: string;
 }
