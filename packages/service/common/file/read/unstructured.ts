@@ -94,7 +94,7 @@ export const readUnFile = async ({
             addLog.info(`End llm image: ${element.element_id}`);
         }
     };
-    const promises = pageElements.map(element => limit(() => asyncOperation(element)));
+    const promises = pageElements.map((element: UnstructuredElementType) => limit(() => asyncOperation(element)));
     await Promise.all(promises);
     addLog.info(`Query ${metadata.relatedId} pdf image description and mongo end.`);
 
