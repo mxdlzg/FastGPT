@@ -82,32 +82,7 @@ export async function Retry(
   switch (retries.config.strategy) {
     case "backoff":
       return retryBackoff(
-        async () => {
-          try {
-            const res = await fn();
-            if (isRetryableResponse(res, retries.statusCodes)) {
-              throw new TemporaryError(res);
-            }
-
-            return res;
-          } catch (err) {
-            if (err instanceof AxiosError) {
-              if (err.response) {
-                if (isRetryableResponse(err.response, retries.statusCodes)) {
-                  throw err;
-                }
-                throw new PermanentError(err);
-              } else if (err.request) {
-                throw err;
-              } else {
-                throw new PermanentError(err);
-              }
-            } else if (err instanceof TemporaryError) {
-              throw err;
-            }
-            throw new PermanentError(err);
-          }
-        },
+        fn,
         retries.config.backoff?.initialInterval ?? 500,
         retries.config.backoff?.maxInterval ?? 60000,
         retries.config.backoff?.exponent ?? 1.5,
@@ -153,7 +128,6 @@ async function retryBackoff(
 ): Promise<AxiosResponse<any, any>> {
   const start = Date.now();
   let x = 0;
-
 
   // eslint-disable-next-line no-constant-condition
   while (true) {

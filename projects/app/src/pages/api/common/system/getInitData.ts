@@ -113,6 +113,7 @@ export async function initSystemConfig() {
 
   console.log({
     feConfigs: global.feConfigs,
+    unstructuredConfigs: global.unstructuredConfigs,
     systemEnv: global.systemEnv,
     subPlans: global.subPlans,
     llmModels: global.llmModels,
