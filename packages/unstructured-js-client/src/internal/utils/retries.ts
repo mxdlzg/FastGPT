@@ -28,15 +28,18 @@ export class RetryConfig {
   strategy: "backoff" | "none";
   backoff?: BackoffStrategy;
   retryConnectionErrors: boolean;
+  logger?: any;
 
   constructor(
     strategy: "backoff" | "none",
     backoff?: BackoffStrategy,
     retryConnectionErrors = true,
+    logger = undefined
   ) {
     this.strategy = strategy;
     this.backoff = backoff;
     this.retryConnectionErrors = retryConnectionErrors;
+    this.logger = logger;
   }
 }
 
@@ -109,6 +112,7 @@ export async function Retry(
         retries.config.backoff?.maxInterval ?? 60000,
         retries.config.backoff?.exponent ?? 1.5,
         retries.config.backoff?.maxElapsedTime ?? 3600000,
+          retries.config.logger
       );
     default:
       return await fn();
@@ -145,9 +149,11 @@ async function retryBackoff(
   maxInterval: number,
   exponent: number,
   maxElapsedTime: number,
+  logger: any
 ): Promise<AxiosResponse<any, any>> {
   const start = Date.now();
   let x = 0;
+
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -160,7 +166,7 @@ async function retryBackoff(
 
       const now = Date.now();
       if (now - start > maxElapsedTime) {
-        console.error("Unstructured partition end of error");
+        logger?.error("Unstructured partition end of error");
         if (err instanceof TemporaryError) {
           return err.res;
         }
@@ -169,13 +175,13 @@ async function retryBackoff(
       }
 
       const d = Math.min(
-        initialInterval * Math.pow(x, exponent) + Math.random() * 1000,
+        initialInterval * Math.pow(x, exponent) + Math.random() * 5000,
         maxInterval,
       );
-      console.error("Unstructured partition error, delay:"+d);
+      logger?.warn("Unstructured partition error, delay:"+d);
       await delay(d);
       x++;
-      console.error("Unstructured partition error, rerun the "+x+" times");
+      logger?.warn("Unstructured partition error, rerun the "+x+" times");
     }
   }
 }
