@@ -7,10 +7,12 @@ import {
   LLMModelItemType
 } from '@fastgpt/global/core/ai/model.d';
 import { SubPlanType } from '@fastgpt/global/support/wallet/sub/type';
+import {UnstructuredEnvType} from "./core/dataset/unstructured/config";
 
 declare global {
   var feConfigs: FastGPTFeConfigsType;
   var systemEnv: SystemEnvType;
+  var unstructuredConfigs: UnstructuredEnvType;
   var subPlans: SubPlanType | undefined;
 
   var llmModels: LLMModelItemType[];

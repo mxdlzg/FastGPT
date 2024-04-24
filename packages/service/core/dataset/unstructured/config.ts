@@ -2,37 +2,55 @@ import {UnstructuredClient} from "../../../../unstructured-js-client/src";
 import axios from "axios";
 import {addLog} from "../../../common/system/log";
 
-export const UnstructuredBaseUrl = process.env.UNSTRUCTURED_BASE_URL || 'http://localhost:8000'//'https://892d-47-100-114-86.ngrok-free.app';
-
-const httpClient = axios.create({
-    timeout: 480000,
-})
-
-httpClient.interceptors.request.use((config) => {
-    return config;
-})
-
-const client = new UnstructuredClient({
-    serverURL: UnstructuredBaseUrl,
-    security: {
-        apiKeyAuth: ""
-    },
-    defaultClient: httpClient,
+export type UnstructuredEnvType = {
+    baseUrl: string;
+    timeout: number;
     retryConfig: {
-        logger: addLog,
-        strategy: "backoff",
-        retryConnectionErrors: true,
-        backoff: {
-            initialInterval: 5000,
-            maxInterval: 10000,
-            maxElapsedTime: 1200000,
-            exponent: 1.5,
+        strategy: "backoff" | "none";
+        initialInterval: number;
+        maxInterval: number;
+        maxElapsedTime: number;
+        exponent: number;
+    };
+}
+
+let client: UnstructuredClient | null = null;
+
+function initClient(){
+    const httpClient = axios.create({
+        timeout: global.unstructuredConfigs.timeout,
+    })
+
+    // httpClient.interceptors.request.use((config) => {
+    //     return config;
+    // })
+    client = new UnstructuredClient({
+        serverURL: global.unstructuredConfigs.baseUrl || 'http://localhost:8000',
+        security: {
+            apiKeyAuth: ""
+        },
+        defaultClient: httpClient,
+        retryConfig: {
+            logger: addLog,
+            strategy: global.unstructuredConfigs.retryConfig.strategy,
+            retryConnectionErrors: true,
+            backoff: {
+                initialInterval: global.unstructuredConfigs.retryConfig.initialInterval,
+                maxInterval: global.unstructuredConfigs.retryConfig.maxInterval,
+                maxElapsedTime: global.unstructuredConfigs.retryConfig.maxElapsedTime,
+                exponent: global.unstructuredConfigs.retryConfig.exponent,
+            }
         }
-    }
-});
+    });
+}
+
+
 
 export const getClient = ({
 
 }) => {
+    if (!client) {
+        initClient();
+    }
     return client;
 }

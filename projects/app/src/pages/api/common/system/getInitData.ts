@@ -95,6 +95,7 @@ export async function initSystemConfig() {
       ...(dbConfig.feConfigs || {}),
       isPlus: !!FastGPTProUrl
     },
+    unstructuredConfigs: dbConfig.unstructuredConfigs || fileRes.unstructuredConfigs || {},
     systemEnv: {
       ...fileRes.systemEnv,
       ...(dbConfig.systemEnv || {})

@@ -53,7 +53,7 @@ export const readUnFile = async ({
     //1. 请求分割pdf
     addLog.info(`File ${metadata.relatedId} partition started.`);
     const client = getClient({})
-    const res = await client.general.partition({
+    const res = await client?.general.partition({
         files: {
             content: buffer,
             fileName: "input_file.pdf"
@@ -65,7 +65,7 @@ export const readUnFile = async ({
     addLog.info(`File ${metadata.relatedId} partition finished.`);
 
     //2. 清洗原始分割元素（去除header）
-    let pageElements  = res. elements?.filter((element: any) => {
+    let pageElements  = res?.elements?.filter((element: any) => {
         return element && element.type!="Header";
     })
 
@@ -84,6 +84,7 @@ export const readUnFile = async ({
                     model: (dataset?.agentModel || "gemini-pro-vision"),
                     language: element.metadata.languages[0],
                 }).catch(error=>{
+                    addLog.error(`Llm image ${element.element_id} error:`, error)
                     return "";
                 }),
                 initMarkdownText({
@@ -91,6 +92,7 @@ export const readUnFile = async ({
                     md: `, the image related to previous description is: ![](data:image/jpeg;base64,${element.metadata.image_base64})`,
                     metadata: metadata,
                 }).catch(error=>{
+                    addLog.error(`initMarkdownText ${element.element_id} error:`, error)
                     return "";
                 })
             ]);

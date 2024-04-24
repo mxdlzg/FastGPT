@@ -44,3 +44,13 @@ files/helm/fastgpt/fastgpt-0.1.0.tgz
 files/helm/fastgpt/charts/*.tgz
 
 tmp/
+packages/unstructured-js-client/docs/sdk/models/errors/httpvalidationerror.md
+packages/unstructured-js-client/docs/sdk/models/operations/partitionresponse.md
+packages/unstructured-js-client/docs/sdk/models/shared/files.md
+packages/unstructured-js-client/docs/sdk/models/shared/partitionparameters.md
+packages/unstructured-js-client/docs/sdk/models/shared/security.md
+packages/unstructured-js-client/docs/sdk/models/shared/validationerror.md
+projects/app/.vscode/launch.json
+.vscode/launch.json
+.vscode/settings.json
+.vscode/settings.json

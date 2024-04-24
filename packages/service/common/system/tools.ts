@@ -11,6 +11,7 @@ export const initFastGPTConfig = (config?: FastGPTConfigFileType) => {
   if (!config) return;
 
   global.feConfigs = config.feConfigs;
+  global.unstructuredConfigs = config.unstructuredConfigs;
   global.systemEnv = config.systemEnv;
   global.subPlans = config.subPlans;
 

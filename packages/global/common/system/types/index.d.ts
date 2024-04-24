@@ -13,6 +13,7 @@ import { SubTypeEnum } from '../../../support/wallet/sub/constants';
 /* fastgpt main */
 export type FastGPTConfigFileType = {
   feConfigs: FastGPTFeConfigsType;
+  unstructuredConfigs: UnstructuredEnvType;
   systemEnv: SystemEnvType;
   subPlans?: SubPlanType;
   llmModels: ChatModelItemType[];
