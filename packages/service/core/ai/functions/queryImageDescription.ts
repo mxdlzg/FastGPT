@@ -1,6 +1,4 @@
-import type {ChatCompletionMessageParam} from "@fastgpt/global/core/ai/type";
-import type {ChatCompletionContentPart} from "@fastgpt/global/core/ai/type";
-import {Prompt_QuestionGuide} from "./createQuestionGuide";
+import type {ChatCompletionContentPart, ChatCompletionMessageParam} from "@fastgpt/global/core/ai/type";
 import {replaceVariable} from "@fastgpt/global/common/string/tools";
 import {getAIApi} from "../config";
 import {getLLMModel} from "../model";
@@ -57,12 +55,10 @@ export async function queryImageDescription({
     const data = await ai.chat.completions.create({
         model: getLLMModel(model).model,
         temperature: 0.1,
-        max_tokens: 200,
+        max_tokens: 500,
         messages: concatMessages,
         stream: false
     });
 
-    const answer = data.choices?.[0]?.message?.content || '';
-
-    return answer;
+    return data.choices?.[0]?.message?.content || '';
 }

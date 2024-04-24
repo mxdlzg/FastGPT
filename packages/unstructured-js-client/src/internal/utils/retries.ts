@@ -3,6 +3,7 @@
  */
 
 import { AxiosError, AxiosResponse } from "axios";
+import * as console from "node:console";
 
 export class BackoffStrategy {
   initialInterval: number;
@@ -159,6 +160,7 @@ async function retryBackoff(
 
       const now = Date.now();
       if (now - start > maxElapsedTime) {
+        console.error("Unstructured partition end of error");
         if (err instanceof TemporaryError) {
           return err.res;
         }
@@ -170,9 +172,10 @@ async function retryBackoff(
         initialInterval * Math.pow(x, exponent) + Math.random() * 1000,
         maxInterval,
       );
-
+      console.error("Unstructured partition error, delay:"+d);
       await delay(d);
       x++;
+      console.error("Unstructured partition error, rerun the "+x+" times");
     }
   }
 }

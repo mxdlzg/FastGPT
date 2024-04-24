@@ -83,14 +83,18 @@ export const readUnFile = async ({
                     image_base64: "data:image/jpeg;base64," + element.metadata.image_base64,
                     model: (dataset?.agentModel || "gemini-pro-vision"),
                     language: element.metadata.languages[0],
+                }).catch(error=>{
+                    return "";
                 }),
                 initMarkdownText({
                     teamId: teamId,
-                    md: `, The image related to previous description is: ![](data:image/jpeg;base64,${element.metadata.image_base64})`,
+                    md: `, the image related to previous description is: ![](data:image/jpeg;base64,${element.metadata.image_base64})`,
                     metadata: metadata,
+                }).catch(error=>{
+                    return "";
                 })
             ]);
-            element.text = llmText+mongoText+"\n\n";
+            element.text = llmText+mongoText+"\n";
             addLog.info(`End llm image: ${element.element_id}`);
         }
     };

@@ -127,9 +127,9 @@ const getFunctionCallSchema = ({
     ${systemPrompt}
     </背景知识>
 
-    问题: "${userChatInput}"
+    用户所提出的问题是:<Q>"${userChatInput}"</Q>
           `
-              : userChatInput
+              : `用户所提出的问题是：<Q>"${userChatInput}"</Q>`
           }
         }
       ]
@@ -145,7 +145,7 @@ const getFunctionCallSchema = ({
   // function body
   const agentFunction = {
     name: agentFunName,
-    description: '结合对话记录及背景知识，对问题进行分类，并返回对应的类型字段',
+    description: '结合对话记录及背景知识，对<Q></Q>内的问题进行分类，并返回对应的类型字段',
     parameters: {
       type: 'object',
       properties: {
