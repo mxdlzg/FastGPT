@@ -163,6 +163,7 @@ async function retryBackoff(
       if (err instanceof PermanentError) {
         throw err.inner;
       }
+      logger.error("Unstructured partition error: ", err)
 
       const now = Date.now();
       if (now - start > maxElapsedTime) {
