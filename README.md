@@ -86,6 +86,7 @@ https://github.com/labring/FastGPT/assets/15308462/7d3a38df-eb0e-4388-9250-2409b
    - [x] Iframe 一键嵌入
    - [x] 聊天窗口嵌入支持自定义 Icon，默认打开，拖拽等功能
    - [x] 统一查阅对话记录，并对数据进行标注
+   
 `6` 其他
    - [x] 支持语音输入和输出 (可配置语音输入语音回答)
 
@@ -121,7 +122,7 @@ https://github.com/labring/FastGPT/assets/15308462/7d3a38df-eb0e-4388-9250-2409b
 
 wx 扫一下加入：
 
-![](https://oss.laf.run/cofxat-test/fastgpt-qr-code2.jpg)
+![](https://oss.laf.run/htr4n1-images/fastgpt-qr-code.jpg)
 
 <a href="#readme">
     <img src="https://img.shields.io/badge/-返回顶部-7d09f1.svg" alt="#" align="right">

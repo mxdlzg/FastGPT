@@ -7,7 +7,8 @@ import {
   LLMModelItemType
 } from '@fastgpt/global/core/ai/model.d';
 import { SubPlanType } from '@fastgpt/global/support/wallet/sub/type';
-import {UnstructuredEnvType} from "./core/dataset/unstructured/config";
+import { UnstructuredEnvType } from "./core/dataset/unstructured/config";
+import { Worker } from 'worker_threads';
 
 declare global {
   var feConfigs: FastGPTFeConfigsType;
@@ -20,4 +21,9 @@ declare global {
   var audioSpeechModels: AudioSpeechModelType[];
   var whisperModel: WhisperModelType;
   var reRankModels: ReRankModelItemType[];
+
+  var tiktokenWorker: {
+    worker: Worker;
+    callbackMap: Record<string, (e: number) => void>;
+  };
 }
