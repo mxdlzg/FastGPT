@@ -6,7 +6,13 @@ ARG name
 ARG proxy
 
 RUN [ -z "$proxy" ] || sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
-RUN apk add --no-cache libc6-compat && npm install -g pnpm@8.6.0
+RUN apk add --no-cache libc6-compat && npm install -g pnpm@9.0.6
+
+# install python3 for node-gyp
+RUN apk add --no-cache python3 make g++
+# Set environment variable for Python
+ENV PYTHON /usr/bin/python3
+
 # if proxy exists, set proxy
 RUN [ -z "$proxy" ] || pnpm config set registry https://registry.npmmirror.com
 
