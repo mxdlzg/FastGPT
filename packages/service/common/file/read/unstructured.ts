@@ -28,7 +28,7 @@ type UnstructuredElementType = {
     };
 }
 
-const limit = pLimit(5);
+const limit = pLimit(3);
 
 // 解构文件，目前接收pdf、word
 export const readUnFile = async ({
