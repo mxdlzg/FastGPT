@@ -10,7 +10,7 @@ RUN apk add --no-cache libc6-compat && npm install -g pnpm@9.0.6
 
 # install python3 for node-gyp
 RUN apk add --no-cache python3 make g++
-RUN apk add --no-cache pkgconfig cairo pango libpng jpeg giflib librsvg pixman-dev
+RUN apk add --no-cache pkgconfig cairo cairo-dev pango libpng jpeg giflib librsvg pixman-dev
 
 # Set environment variable for Python
 ENV PYTHON /usr/bin/python3
