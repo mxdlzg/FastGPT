@@ -2,13 +2,13 @@ name: Deploy image to vercel
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'docSite/**'
-    branches:
-      - 'main'
-    tags:
-      - 'v*.*.*'
+  # push:
+  #   paths:
+  #     - 'docSite/**'
+  #   branches:
+  #     - 'main'
+  #   tags:
+  #     - 'v*.*.*'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -53,7 +53,7 @@ jobs:
       - name: Install Hugo
         uses: peaceiris/actions-hugo@v2
         with:
-          hugo-version: '0.117.0'
+          hugo-version: "0.117.0"
           extended: true
 
       # Step 4 - Builds the site using Hugo
@@ -69,7 +69,7 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }} #Required
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }} #Required
           github-comment: false
-          vercel-args: '--prod --local-config ../vercel.json' # Optional
+          vercel-args: "--prod --local-config ../vercel.json" # Optional
           working-directory: docSite/public
 
       - name: Deploy to GitHub Pages
