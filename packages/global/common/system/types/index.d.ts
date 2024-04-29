@@ -38,6 +38,7 @@ export type FastGPTFeConfigsType = {
   chatbotUrl?: string;
   openAPIDocUrl?: string;
   systemTitle?: string;
+  systemDescription?: string;
   googleClientVerKey?: string;
   isPlus?: boolean;
   show_phoneLogin?: boolean;

@@ -73,6 +73,7 @@
     "Confirm Import": "确认导入",
     "Confirm Move": "移动到这",
     "Confirm Update": "确认更新",
+    "Confirm to leave the page": "确认离开该页面?",
     "Copy": "复制",
     "Copy Successful": "复制成功",
     "Course": "",
@@ -152,6 +153,7 @@
     "Submit failed": "提交失败",
     "Submit success": "提交成功",
     "Sync success": "同步成功",
+    "System Output": "系统输出",
     "System version": "系统版本",
     "Team": "团队",
     "Team Tags Set": "标签",
@@ -278,6 +280,8 @@
       "Api request desc": "通过 API 接入到已有系统中，或企微、飞书等",
       "App intro": "应用介绍",
       "App params config": "应用配置",
+      "Auto Save time": "自动保存: {{time}}",
+      "Change to simple mode": "切换简易模式",
       "Chat Variable": "对话框变量",
       "Config schedule plan": "配置定时执行",
       "Config whisper": "配置语音输入",
@@ -289,6 +293,11 @@
       "Max histories": "聊天记录数量",
       "Max tokens": "回复上限",
       "Name and avatar": "头像 & 名称",
+      "Onclick to save": "点击保存",
+      "Publish": "发布",
+      "Publish Confirm": "确认发布应用？会立即更新所有发布渠道的应用状态。",
+      "Publish Failed": "发布失败",
+      "Publish Success": "发布成功",
       "Question Guide": "猜你想问",
       "Question Guide Tip": "对话结束后，会为生成 3 个引导性问题。",
       "Quote prompt": "引用模板提示词",
@@ -366,6 +375,11 @@
         "Select Using Way": "选择使用方式",
         "Show History": "展示历史对话",
         "Web Link": "网络链接"
+      },
+      "publish": {
+        "Fei Shu Bot Desc": "接入到飞书机器人中",
+        "Fei shu bot": "飞书",
+        "Fei shu bot publish": "发布到飞书机器人"
       },
       "schedule": {
         "Default prompt": "默认问题",
@@ -631,7 +645,8 @@
             "success": "开始同步"
           }
         },
-        "training": {}
+        "training": {
+        }
       },
       "data": {
         "Auxiliary Data": "辅助数据",
@@ -689,7 +704,7 @@
         "Data file progress": "数据上传进度",
         "Data process params": "数据处理参数",
         "Down load csv template": "点击下载 CSV 模板",
-        "Embedding Estimated Price Tips": "仅使用索引模型，消耗少量Tokens: {{price}}积分/1k Tokens",
+        "Embedding Estimated Price Tips": "仅使用索引模型，消耗少量AI积分: {{price}}积分/1k Tokens",
         "Estimated Price": "预估价格: {{amount}}{{unit}}",
         "Estimated Price Tips": "QA计费为\n输入: {{charsPointsPrice}}积分/1k Tokens",
         "Estimated points": "预估消耗 {{points}} 积分",
@@ -716,7 +731,7 @@
         "Preview chunks": "预览分段（最多5段）",
         "Preview raw text": "预览源文本（最多3000字）",
         "Process way": "处理方式",
-        "QA Estimated Price Tips": "需调用文件处理模型，需要消耗较多Tokens: {{price}}积分/1k Tokens",
+        "QA Estimated Price Tips": "需调用文件处理模型，需要消耗较多AI积分: {{price}}积分/1k Tokens",
         "QA Import": "QA拆分",
         "QA Import Tip": "根据一定规则，将文本拆成一段较大的段落，调用 AI 为该段落生成问答对。有非常高的检索精度，但是会丢失很多内容细节。",
         "Re Preview": "重新生成预览",
@@ -952,6 +967,7 @@
           "anyInput": "",
           "chat history": "聊天记录",
           "switch": "触发器",
+          "system params": "系统参数",
           "textEditor textarea": "文本编辑",
           "user question": "用户问题"
         },
@@ -1037,11 +1053,16 @@
       },
       "valueType": {
         "any": "任意",
+        "arrayBoolean": "布尔数组",
+        "arrayNumber": "数字数组",
+        "arrayObject": "对象数组",
+        "arrayString": "字符串数组",
         "boolean": "布尔",
-        "chatHistory": "聊天记录",
-        "datasetQuote": "引用内容",
+        "chatHistory": "历史记录",
+        "datasetQuote": "知识库类型",
         "dynamicTargetInput": "动态字段输入",
         "number": "数字",
+        "object": "对象",
         "selectApp": "应用选择",
         "selectDataset": "知识库选择",
         "string": "字符串",
@@ -1098,6 +1119,7 @@
       "Stop debug": "停止调试",
       "Success": "运行成功",
       "Value type": "数据类型",
+      "Variable outputs": "全局变量",
       "chat": {
         "Quote prompt": "引用提示词"
       },
@@ -1130,6 +1152,7 @@
         "textarea": "多行输入框"
       },
       "tool": {
+        "Handle": "工具连接器",
         "Select Tool": "选择工具"
       }
     }
@@ -1422,7 +1445,7 @@
     "user": {
       "AI point standard": "AI积分标准",
       "Avatar": "头像",
-      "Go laf env": "点击前往 laf 获取 PAT 凭证。",
+      "Go laf env": "点击前往 {{env}} 获取 PAT 凭证。",
       "Laf account course": "查看绑定 laf 账号教程。",
       "Laf account intro": "绑定你的laf账号后，你将可以在工作流中使用 laf 模块，实现在线编写代码。",
       "Need to login": "请先登录",

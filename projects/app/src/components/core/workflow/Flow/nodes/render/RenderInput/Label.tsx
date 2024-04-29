@@ -1,10 +1,6 @@
-import {
-  FlowNodeInputItemType,
-  FlowNodeOutputItemType
-} from '@fastgpt/global/core/workflow/type/io.d';
+import { FlowNodeInputItemType } from '@fastgpt/global/core/workflow/type/io.d';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'next-i18next';
-import { useFlowProviderStore } from '../../../FlowProvider';
 import { Box, Flex } from '@chakra-ui/react';
 import MyTooltip from '@/components/MyTooltip';
 import { QuestionOutlineIcon } from '@chakra-ui/icons';
@@ -14,20 +10,22 @@ import MyIcon from '@fastgpt/web/components/common/Icon';
 
 import dynamic from 'next/dynamic';
 import { EditNodeFieldType } from '@fastgpt/global/core/workflow/node/type';
-import { FlowValueTypeMap } from '@/web/core/workflow/constants/dataType';
 import { FlowNodeInputTypeEnum } from '@fastgpt/global/core/workflow/node/constant';
 import ValueTypeLabel from '../ValueTypeLabel';
+import { useContextSelector } from 'use-context-selector';
+import { WorkflowContext } from '@/components/core/workflow/context';
 const FieldEditModal = dynamic(() => import('../FieldEditModal'));
 
 type Props = {
   nodeId: string;
   input: FlowNodeInputItemType;
-  mode?: 'app' | 'plugin';
 };
 
 const InputLabel = ({ nodeId, input }: Props) => {
   const { t } = useTranslation();
-  const { onChangeNode } = useFlowProviderStore();
+
+  const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
+
   const {
     description,
     toolDescription,
@@ -37,15 +35,9 @@ const InputLabel = ({ nodeId, input }: Props) => {
     renderTypeList,
     valueType,
     canEdit,
-    key,
-    value
+    key
   } = input;
   const [editField, setEditField] = useState<EditNodeFieldType>();
-
-  const valueTypeLabel = useMemo(
-    () => (valueType ? t(FlowValueTypeMap[valueType]?.label) : ''),
-    [t, valueType]
-  );
 
   const onChangeRenderType = useCallback(
     (e: string) => {
@@ -84,35 +76,35 @@ const InputLabel = ({ nodeId, input }: Props) => {
           )}
         </Box>
         {/* value type */}
-        {renderType === FlowNodeInputTypeEnum.reference && !!valueTypeLabel && (
-          <ValueTypeLabel>{valueTypeLabel}</ValueTypeLabel>
-        )}
+        {renderType === FlowNodeInputTypeEnum.reference && <ValueTypeLabel valueType={valueType} />}
         {/* edit config */}
         {canEdit && (
           <>
-            <MyIcon
-              name={'common/settingLight'}
-              w={'14px'}
-              cursor={'pointer'}
-              ml={3}
-              color={'myGray.600'}
-              _hover={{ color: 'primary.500' }}
-              onClick={() =>
-                setEditField({
-                  inputType: renderTypeList[0],
-                  valueType: valueType,
-                  key,
-                  label,
-                  description,
-                  isToolInput: !!toolDescription,
-                  defaultValue: input.defaultValue,
-                  maxLength: input.maxLength,
-                  max: input.max,
-                  min: input.min,
-                  dynamicParamDefaultValue: input.dynamicParamDefaultValue
-                })
-              }
-            />
+            {input.editField && Object.keys(input.editField).length > 0 && (
+              <MyIcon
+                name={'common/settingLight'}
+                w={'14px'}
+                cursor={'pointer'}
+                ml={3}
+                color={'myGray.600'}
+                _hover={{ color: 'primary.500' }}
+                onClick={() =>
+                  setEditField({
+                    inputType: renderTypeList[0],
+                    valueType: valueType,
+                    key,
+                    label,
+                    description,
+                    isToolInput: !!toolDescription,
+                    defaultValue: input.defaultValue,
+                    maxLength: input.maxLength,
+                    max: input.max,
+                    min: input.min,
+                    dynamicParamDefaultValue: input.dynamicParamDefaultValue
+                  })
+                }
+              />
+            )}
             <MyIcon
               className="delete"
               name={'delete'}
@@ -207,8 +199,7 @@ const InputLabel = ({ nodeId, input }: Props) => {
     selectedTypeIndex,
     t,
     toolDescription,
-    valueType,
-    valueTypeLabel
+    valueType
   ]);
 
   return RenderLabel;

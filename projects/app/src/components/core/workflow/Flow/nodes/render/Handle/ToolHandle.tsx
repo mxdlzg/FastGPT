@@ -1,15 +1,12 @@
 import MyTooltip from '@/components/MyTooltip';
-import { FlowValueTypeMap } from '@/web/core/workflow/constants/dataType';
 import { Box, BoxProps } from '@chakra-ui/react';
-import {
-  WorkflowIOValueTypeEnum,
-  NodeOutputKeyEnum
-} from '@fastgpt/global/core/workflow/constants';
+import { NodeOutputKeyEnum } from '@fastgpt/global/core/workflow/constants';
 import { useTranslation } from 'next-i18next';
 import { Connection, Handle, Position } from 'reactflow';
-import { useFlowProviderStore } from '../../../FlowProvider';
 import { useCallback, useMemo } from 'react';
 import { getHandleId } from '@fastgpt/global/core/workflow/utils';
+import { useContextSelector } from 'use-context-selector';
+import { WorkflowContext } from '@/components/core/workflow/context';
 const handleSize = '14px';
 
 type ToolHandleProps = BoxProps & {
@@ -17,7 +14,9 @@ type ToolHandleProps = BoxProps & {
 };
 export const ToolTargetHandle = ({ nodeId }: ToolHandleProps) => {
   const { t } = useTranslation();
-  const { connectingEdge, edges } = useFlowProviderStore();
+  const connectingEdge = useContextSelector(WorkflowContext, (ctx) => ctx.connectingEdge);
+  const edges = useContextSelector(WorkflowContext, (v) => v.edges);
+
   const handleId = NodeOutputKeyEnum.selectedTools;
 
   const connected = edges.some((edge) => edge.target === nodeId && edge.targetHandle === handleId);
@@ -28,17 +27,9 @@ export const ToolTargetHandle = ({ nodeId }: ToolHandleProps) => {
     (connectingEdge?.handleId !== NodeOutputKeyEnum.selectedTools ||
       edges.some((edge) => edge.targetHandle === getHandleId(nodeId, 'target', 'top')));
 
-  const valueTypeMap = FlowValueTypeMap[WorkflowIOValueTypeEnum.tools];
-
   const Render = useMemo(() => {
     return (
-      <MyTooltip
-        label={t('app.module.type', {
-          type: t(valueTypeMap?.label),
-          description: valueTypeMap?.description
-        })}
-        shouldWrapChildren={false}
-      >
+      <MyTooltip label={t('core.workflow.tool.Handle')} shouldWrapChildren={false}>
         <Handle
           style={{
             borderRadius: '0',
@@ -63,16 +54,14 @@ export const ToolTargetHandle = ({ nodeId }: ToolHandleProps) => {
         </Handle>
       </MyTooltip>
     );
-  }, [handleId, hidden, t, valueTypeMap?.description, valueTypeMap?.label]);
+  }, [handleId, hidden, t]);
 
   return Render;
 };
 
 export const ToolSourceHandle = ({ nodeId }: ToolHandleProps) => {
   const { t } = useTranslation();
-  const { setEdges } = useFlowProviderStore();
-
-  const valueTypeMap = FlowValueTypeMap[WorkflowIOValueTypeEnum.tools];
+  const setEdges = useContextSelector(WorkflowContext, (v) => v.setEdges);
 
   /* onConnect edge, delete tool input and switch */
   const onConnect = useCallback(
@@ -90,13 +79,7 @@ export const ToolSourceHandle = ({ nodeId }: ToolHandleProps) => {
 
   const Render = useMemo(() => {
     return (
-      <MyTooltip
-        label={t('app.module.type', {
-          type: t(valueTypeMap?.label),
-          description: valueTypeMap?.description
-        })}
-        shouldWrapChildren={false}
-      >
+      <MyTooltip label={t('core.workflow.tool.Handle')} shouldWrapChildren={false}>
         <Handle
           style={{
             borderRadius: '0',
@@ -120,7 +103,7 @@ export const ToolSourceHandle = ({ nodeId }: ToolHandleProps) => {
         </Handle>
       </MyTooltip>
     );
-  }, [onConnect, t, valueTypeMap?.description, valueTypeMap?.label]);
+  }, [onConnect, t]);
 
   return Render;
 };

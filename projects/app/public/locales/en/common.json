@@ -73,6 +73,7 @@
     "Confirm Import": "Import",
     "Confirm Move": "Move here",
     "Confirm Update": "Update",
+    "Confirm to leave the page": "Are you sure to leave this page?",
     "Copy": "Copy",
     "Copy Successful": "Copy Successful",
     "Course": "",
@@ -152,6 +153,7 @@
     "Submit failed": "Submit failed",
     "Submit success": "Update Success",
     "Sync success": "",
+    "System Output": "System Output",
     "System version": "System version",
     "Team": "Team",
     "Team Tags Set": "Team Tags",
@@ -278,6 +280,8 @@
       "Api request desc": "Access to the existing system through API, or enterprise micro, flying book, etc",
       "App intro": "App intro",
       "App params config": "App Config",
+      "Auto Save time": "Auto-saved: {{time}}",
+      "Change to simple mode": "Switch easy mode",
       "Chat Variable": "",
       "Config schedule plan": "Config schedule config",
       "Config whisper": "Config whisper",
@@ -289,6 +293,11 @@
       "Max histories": "Dialog round",
       "Max tokens": "Max tokens",
       "Name and avatar": "Avatar & Name",
+      "Onclick to save": "Save",
+      "Publish": "Publish",
+      "Publish Confirm": "Sure to release the app? App status is immediately updated across all publishing channels.",
+      "Publish Failed": "Publish error",
+      "Publish Success": "Publish Success",
       "Question Guide": "Question Guide",
       "Question Guide Tip": "At the end of the conversation, three leading questions will be asked.",
       "Quote prompt": "Quote prompt",
@@ -366,6 +375,11 @@
         "Select Using Way": "Select use mode",
         "Show History": "Show History",
         "Web Link": "Web Link"
+      },
+      "publish": {
+        "Fei Shu Bot Desc": "Access the Lark robot",
+        "Fei shu bot": "Lark",
+        "Fei shu bot publish": "Posted to Lark Robot"
       },
       "schedule": {
         "Default prompt": "Default prompt",
@@ -951,6 +965,7 @@
           "anyInput": "Any input",
           "chat history": "chat history",
           "switch": "Trigger",
+          "system params": "System params",
           "textEditor textarea": "Text edit",
           "user question": "User question"
         },
@@ -1036,11 +1051,16 @@
       },
       "valueType": {
         "any": "Any",
+        "arrayBoolean": "Array Boolean",
+        "arrayNumber": "Array Number",
+        "arrayObject": "Array Object",
+        "arrayString": "Array String",
         "boolean": "Boolean",
         "chatHistory": "History",
         "datasetQuote": "Dataset Quote",
         "dynamicTargetInput": "Dynamic Input",
         "number": "Number",
+        "object": "Object",
         "selectApp": "Select App",
         "selectDataset": "Select Dataset",
         "string": "String",
@@ -1097,6 +1117,7 @@
       "Stop debug": "Stop",
       "Success": "Running success",
       "Value type": "Type",
+      "Variable outputs": "Variables",
       "chat": {
         "Quote prompt": "Quote prompt"
       },
@@ -1129,6 +1150,7 @@
         "textarea": "Textarea"
       },
       "tool": {
+        "Handle": "Tool handle",
         "Select Tool": "Select Tool"
       }
     }
