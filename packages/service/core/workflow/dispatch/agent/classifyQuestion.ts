@@ -63,8 +63,8 @@ export const dispatchClassifyQuestion = async (props: Props): Promise<CQResponse
   return {
     [NodeOutputKeyEnum.cqResult]: result.value,
     [DispatchNodeResponseKeyEnum.skipHandleId]: agents
-        .filter((item) => item.key !== arg?.type)
-        .map((item) => getHandleId(nodeId, 'source', item.key)),
+      .filter((item) => item.key !== arg?.type)
+      .map((item) => getHandleId(nodeId, 'source', item.key)),
     [DispatchNodeResponseKeyEnum.nodeResponse]: {
       totalPoints: user.openaiAccount?.key ? 0 : totalPoints,
       model: modelName,
@@ -86,11 +86,11 @@ export const dispatchClassifyQuestion = async (props: Props): Promise<CQResponse
 };
 
 const completions = async ({
-                             cqModel,
-                             user,
-                             histories,
-                             params: { agents, systemPrompt = '', userChatInput }
-                           }: ActionProps) => {
+  cqModel,
+  user,
+  histories,
+  params: { agents, systemPrompt = '', userChatInput }
+}: ActionProps) => {
   const messages: ChatItemType[] = [
     {
       obj: ChatRoleEnum.Human,
@@ -101,11 +101,11 @@ const completions = async ({
             content: replaceVariable(cqModel.customCQPrompt || Prompt_CQJson, {
               systemPrompt: systemPrompt || 'null',
               typeList: agents
-                  .map((item) => `{"类型ID":"${item.key}", "问题类型":"${item.value}"}`)
-                  .join('------'),
+                .map((item) => `{"类型ID":"${item.key}", "问题类型":"${item.value}"}`)
+                .join('------'),
               history: histories
-                  .map((item) => `${item.obj}:${chatValue2RuntimePrompt(item.value).text}`)
-                  .join('------'),
+                .map((item) => `${item.obj}:${chatValue2RuntimePrompt(item.value).text}`)
+                .join('------'),
               question: userChatInput
             })
           }
@@ -131,7 +131,9 @@ const completions = async ({
   console.log(answer, '----');
 
   const id =
-      agents.find((item) => answer.includes(item.key) || answer.includes(item.value))?.key || '';
+    agents.find((item) => answer.includes(item.key))?.key ||
+    agents.find((item) => answer.includes(item.value))?.key ||
+    '';
 
   return {
     tokens: await countMessagesTokens(messages),

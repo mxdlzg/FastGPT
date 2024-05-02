@@ -2,11 +2,10 @@ import { Types, connectionMongo } from '../../mongo';
 import { BucketNameEnum } from '@fastgpt/global/common/file/constants';
 import fsp from 'fs/promises';
 import fs from 'fs';
-import {DatasetFileSchema, DatasetSchemaType} from '@fastgpt/global/core/dataset/type';
+import { DatasetFileSchema, DatasetSchemaType } from '@fastgpt/global/core/dataset/type';
 import { MongoFileSchema } from './schema';
 import { detectFileEncoding } from '@fastgpt/global/common/file/tools';
 import { CommonErrEnum } from '@fastgpt/global/common/error/code/common';
-import { ReadFileByBufferParams } from '../read/type';
 import { MongoRwaTextBuffer } from '../../buffer/rawText/schema';
 import { readFileRawContent } from '../read/utils';
 import { PassThrough } from 'stream';
@@ -153,7 +152,7 @@ export const readFileContentFromMongo = async ({
   bucketName,
   fileId,
   csvFormat = false,
-    dataset = undefined,
+  dataset = undefined,
   preview = false,
 }: {
   teamId: string;
@@ -201,21 +200,15 @@ export const readFileContentFromMongo = async ({
     });
   })();
 
-  const params: ReadFileByBufferParams = {
+  const { rawText } = await readFileRawContent({
+    extension,
+    csvFormat,
     teamId,
     buffer: fileBuffers,
     encoding,
     metadata: {
       relatedId: fileId
-    },
-    dataset: dataset,
-    preview: preview
-  };
-
-  const { rawText } = await readFileRawContent({
-    extension,
-    csvFormat,
-    params,
+    }
   });
 
   if (rawText.trim()) {
