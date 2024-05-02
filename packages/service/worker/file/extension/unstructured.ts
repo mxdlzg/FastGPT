@@ -7,6 +7,7 @@ import { getClient } from "../../../core/dataset/unstructured/config";
 import { addLog } from "../../../common/system/log";
 import { PDFDocument } from "pdf-lib"
 import pLimit from "p-limit";
+import {ReadRawTextByBuffer} from "../type";
 
 type TokenType = {
     str: string;
@@ -31,13 +32,7 @@ type UnstructuredElementType = {
 const limit = pLimit(3);
 
 // 解构文件，目前接收pdf、word
-export const readUnFile = async ({
-    teamId,
-    buffer,
-    metadata = {},
-    dataset = undefined,
-    preview = false,
-}: ReadFileByBufferParams): Promise<ReadFileResponse> => {
+export const readUnFile = async ({ buffer, preview, metadata, teamId, dataset }: ReadRawTextByBuffer): Promise<ReadFileResponse> => {
 
     if (preview) {
         const pdfDoc = await PDFDocument.load(buffer);
@@ -51,7 +46,7 @@ export const readUnFile = async ({
     }
 
     //1. 请求分割pdf
-    addLog.info(`File ${metadata.relatedId} partition started.`);
+    addLog.info(`File ${metadata?.relatedId} partition started.`);
     const client = getClient({})
     const res = await client?.general.partition({
         files: {
@@ -62,7 +57,7 @@ export const readUnFile = async ({
         hiResModelName: "yolox",
         encoding: "utf-8",
     })
-    addLog.info(`File ${metadata.relatedId} partition finished.`);
+    addLog.info(`File ${metadata?.relatedId} partition finished.`);
 
     //2. 清洗原始分割元素（去除header）
     let pageElements = res?.elements?.filter((element: any) => {
@@ -102,13 +97,13 @@ export const readUnFile = async ({
     };
     const promises = pageElements.map((element: UnstructuredElementType) => limit(() => asyncOperation(element)));
     await Promise.all(promises);
-    addLog.info(`Query ${metadata.relatedId} pdf image description and mongo end.`);
+    addLog.info(`Query ${metadata?.relatedId} pdf image description and mongo end.`);
 
     //5. 拼接所有文本成rawText
     const finalText = pageElements?.map((element: UnstructuredElementType) => {
         return `${element.text}\n`
     }).join('');
-    addLog.info(`Join ${metadata.relatedId} pdf text end.`);
+    addLog.info(`Join ${metadata?.relatedId} pdf text end.`);
 
     return {
         formatText: "", metadata: metadata, rawText: finalText

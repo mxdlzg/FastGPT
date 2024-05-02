@@ -206,6 +206,7 @@ export const readFileContentFromMongo = async ({
     teamId,
     buffer: fileBuffers,
     encoding,
+    dataset,
     metadata: {
       relatedId: fileId
     }

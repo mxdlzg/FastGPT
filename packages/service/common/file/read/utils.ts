@@ -5,6 +5,7 @@ import { addHours } from 'date-fns';
 
 import { WorkerNameEnum, runWorker } from '../../../worker/utils';
 import { ReadFileResponse } from '../../../worker/file/type';
+import {DatasetSchemaType} from "@fastgpt/global/core/dataset/type";
 
 export const initMarkdownText = ({
   teamId,
@@ -33,7 +34,8 @@ export const readFileRawContent = async ({
   teamId,
   buffer,
   encoding,
-  metadata
+  metadata,
+    dataset
 }: {
   csvFormat?: boolean;
   extension: string;
@@ -41,12 +43,16 @@ export const readFileRawContent = async ({
   buffer: Buffer;
   encoding: string;
   metadata?: Record<string, any>;
+  dataset?: DatasetSchemaType;
 }) => {
   const result = await runWorker<ReadFileResponse>(WorkerNameEnum.readFile, {
     extension,
     csvFormat,
     encoding,
-    buffer
+    buffer,
+    metadata,
+    teamId,
+    dataset
   });
 
   // markdown data format
