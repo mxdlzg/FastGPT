@@ -9,7 +9,11 @@ export enum WorkerNameEnum {
 
 export const getWorker = (name: WorkerNameEnum) => {
   const workerPath = path.join(process.cwd(), '.next', 'server', 'worker', `${name}.js`);
-  return new Worker(workerPath);
+  return new Worker(workerPath, {workerData: {
+    globalConfig: {
+      unstructuredConfigs: global.unstructuredConfigs
+    }
+    }});
 };
 
 export const runWorker = <T = any>(name: WorkerNameEnum, params?: Record<string, any>) => {

@@ -20,11 +20,13 @@ export async function queryImageDescription({
         rawTex,
         image_base64,
         model,
+        ai,
         language="eng"
     }: {
     rawTex: string;
     image_base64: string;
     model: string;
+    ai: any
     language?: string;
 }) {
     // 无"data:image/jpeg;base64,"开头的base64结构
@@ -49,9 +51,6 @@ export async function queryImageDescription({
         }
     ];
 
-    const ai = getAIApi({
-        timeout: 480000
-    });
     const data = await ai.chat.completions.create({
         model: getLLMModel(model).model,
         temperature: 0.1,

@@ -19,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   jsonRes<InitDateResponse>(res, {
     data: {
       feConfigs: global.feConfigs,
+      unstructuredConfigs: global.unstructuredConfigs,
       subPlans: global.subPlans,
       llmModels: global.llmModels,
       vectorModels: global.vectorModels,

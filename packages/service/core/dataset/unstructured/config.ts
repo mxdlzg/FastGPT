@@ -16,29 +16,32 @@ export type UnstructuredEnvType = {
 
 let client: UnstructuredClient | null = null;
 
-function initClient(){
+function initClient(config?: UnstructuredEnvType){
+    if (!config){
+        config = global.unstructuredConfigs;
+    }
     const httpClient = axios.create({
-        timeout: global.unstructuredConfigs.timeout,
+        timeout: config.timeout,
     })
 
     // httpClient.interceptors.request.use((config) => {
     //     return config;
     // })
     client = new UnstructuredClient({
-        serverURL: global.unstructuredConfigs.baseUrl || 'http://localhost:8000',
+        serverURL: config.baseUrl || 'http://localhost:8000',
         security: {
             apiKeyAuth: ""
         },
         defaultClient: httpClient,
         retryConfig: {
             logger: addLog,
-            strategy: global.unstructuredConfigs.retryConfig.strategy,
+            strategy: config.retryConfig.strategy,
             retryConnectionErrors: true,
             backoff: {
-                initialInterval: global.unstructuredConfigs.retryConfig.initialInterval,
-                maxInterval: global.unstructuredConfigs.retryConfig.maxInterval,
-                maxElapsedTime: global.unstructuredConfigs.retryConfig.maxElapsedTime,
-                exponent: global.unstructuredConfigs.retryConfig.exponent,
+                initialInterval: config.retryConfig.initialInterval,
+                maxInterval: config.retryConfig.maxInterval,
+                maxElapsedTime: config.retryConfig.maxElapsedTime,
+                exponent: config.retryConfig.exponent,
             }
         }
     });
@@ -46,11 +49,9 @@ function initClient(){
 
 
 
-export const getClient = ({
-
-}) => {
+export const getClient = (config?: UnstructuredEnvType) => {
     if (!client) {
-        initClient();
+        initClient(config);
     }
     return client;
 }

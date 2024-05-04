@@ -6,6 +6,7 @@ import { addHours } from 'date-fns';
 import { WorkerNameEnum, runWorker } from '../../../worker/utils';
 import { ReadFileResponse } from '../../../worker/file/type';
 import {DatasetSchemaType} from "@fastgpt/global/core/dataset/type";
+import {initPdfText} from "../../../worker/file/extension/unstructured";
 
 export const initMarkdownText = ({
   teamId,
@@ -54,6 +55,16 @@ export const readFileRawContent = async ({
     teamId,
     dataset
   });
+
+  // pdf image query
+  if (['pdf'].includes(extension)) {
+    result.rawText = await initPdfText({
+      teamId: teamId,
+      metadata: metadata,
+      dataset: dataset,
+      pageElements: result?.metadata? result?.metadata["elements"] : []
+    });
+  }
 
   // markdown data format
   if (['md', 'html', 'docx'].includes(extension)) {

@@ -8,7 +8,6 @@ export type ReadRawTextProps<T> = {
   encoding: string;
   preview?: boolean;
   teamId: string;
-  dataset?: DatasetSchemaType;
   metadata?: Record<string, any>;
 };
 
@@ -17,4 +16,5 @@ export type ReadRawTextByBuffer = ReadRawTextProps<Buffer>;
 export type ReadFileResponse = {
   rawText: string;
   formatText?: string;
+  metadata?: Record<string, any>;
 };

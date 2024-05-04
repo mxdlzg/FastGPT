@@ -8,6 +8,7 @@ import type {
 
 import type { FastGPTFeConfigsType } from '@fastgpt/global/common/system/types/index.d';
 import { SubPlanType } from '@fastgpt/global/support/wallet/sub/type';
+import {UnstructuredEnvType} from "@fastgpt/service/core/dataset/unstructured/config";
 
 export type InitDateResponse = {
   llmModels: LLMModelItemType[];
@@ -15,6 +16,7 @@ export type InitDateResponse = {
   audioSpeechModels: AudioSpeechModels[];
   reRankModels: ReRankModelItemType[];
   whisperModel: WhisperModelType;
+  unstructuredConfigs: UnstructuredEnvType;
   feConfigs: FastGPTFeConfigsType;
   subPlans?: SubPlanType;
   systemVersion: string;

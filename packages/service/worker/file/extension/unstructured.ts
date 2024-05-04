@@ -1,23 +1,14 @@
-import { ReadFileByBufferParams, ReadFileResponse } from "../../../common/file/read/type";
-import { initMarkdownText } from '../../../common/file/read/utils';
-import { getDownloadStream, getFileById } from "../../../common/file/gridfs/controller";
-import { queryImageDescription } from "../../../core/ai/functions/queryImageDescription";
-import { getLLMModel } from "../../../core/ai/model";
-import { getClient } from "../../../core/dataset/unstructured/config";
-import { addLog } from "../../../common/system/log";
-import { PDFDocument } from "pdf-lib"
+import {ReadFileResponse} from "../../../common/file/read/type";
+import {initMarkdownText} from '../../../common/file/read/utils';
+import {queryImageDescription} from "../../../core/ai/functions/queryImageDescription";
+import {getClient} from "../../../core/dataset/unstructured/config";
+import {addLog} from "../../../common/system/log";
+import {PDFDocument} from "pdf-lib"
 import pLimit from "p-limit";
 import {ReadRawTextByBuffer} from "../type";
-
-type TokenType = {
-    str: string;
-    dir: string;
-    width: number;
-    height: number;
-    transform: number[];
-    fontName: string;
-    hasEOL: boolean;
-};
+import {workerData} from "worker_threads"
+import {DatasetSchemaType} from "@fastgpt/global/core/dataset/type";
+import {getAIApi} from "../../../core/ai/config";
 
 type UnstructuredElementType = {
     type: string;
@@ -32,7 +23,7 @@ type UnstructuredElementType = {
 const limit = pLimit(3);
 
 // 解构文件，目前接收pdf、word
-export const readUnFile = async ({ buffer, preview, metadata, teamId, dataset }: ReadRawTextByBuffer): Promise<ReadFileResponse> => {
+export const readUnFile = async ({ buffer, preview, metadata }: ReadRawTextByBuffer): Promise<ReadFileResponse> => {
 
     if (preview) {
         const pdfDoc = await PDFDocument.load(buffer);
@@ -47,7 +38,7 @@ export const readUnFile = async ({ buffer, preview, metadata, teamId, dataset }:
 
     //1. 请求分割pdf
     addLog.info(`File ${metadata?.relatedId} partition started.`);
-    const client = getClient({})
+    const client = getClient(workerData.globalConfig.unstructuredConfigs)
     const res = await client?.general.partition({
         files: {
             content: buffer,
@@ -67,7 +58,23 @@ export const readUnFile = async ({ buffer, preview, metadata, teamId, dataset }:
     if (!pageElements || pageElements.length == 0) {
         pageElements = []
     }
+    if (metadata) {
+        metadata["elements"] = pageElements;
+    }
+    return {
+        formatText: "", metadata: metadata, rawText: ""
+    }
+}
 
+export const initPdfText = async ({ metadata, teamId, dataset, pageElements }: {
+    metadata: any;
+    teamId: string;
+    dataset: DatasetSchemaType|undefined;
+    pageElements: any[];
+}): Promise<string> => {
+    const ai = getAIApi({
+        timeout: 480000
+    })
     //3. 请求llm-v对图片（图片和表格）进行描述 4. 将图片、表格插入mongodb
     const asyncOperation = async (element: UnstructuredElementType) => {
         if (["Image", "Table"].includes(element.type) && element.text.length >= 2 && element.metadata.image_base64) {
@@ -77,6 +84,7 @@ export const readUnFile = async ({ buffer, preview, metadata, teamId, dataset }:
                     rawTex: element.text,
                     image_base64: "data:image/jpeg;base64," + element.metadata.image_base64,
                     model: (dataset?.agentModel || "gemini-pro-vision"),
+                    ai: ai,
                     language: element.metadata.languages[0],
                 }).catch(error => {
                     addLog.error(`Llm image ${element.element_id} error:`, error)
@@ -105,7 +113,5 @@ export const readUnFile = async ({ buffer, preview, metadata, teamId, dataset }:
     }).join('');
     addLog.info(`Join ${metadata?.relatedId} pdf text end.`);
 
-    return {
-        formatText: "", metadata: metadata, rawText: finalText
-    }
+    return finalText
 }

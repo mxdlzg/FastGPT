@@ -1,7 +1,7 @@
 import {readFileContentFromMongo} from "@fastgpt/service/common/file/gridfs/controller";
 import {BucketNameEnum} from "@fastgpt/global/common/file/constants";
 import {splitText2Chunks} from "@fastgpt/global/common/string/textSplitter";
-import {DatasetCollectionTypeEnum, TrainingModeEnum} from "@fastgpt/global/core/dataset/constants";
+import {TrainingModeEnum} from "@fastgpt/global/core/dataset/constants";
 import {checkDatasetLimit} from "@fastgpt/service/support/permission/teamLimit";
 import {predictDataLimitLength} from "@fastgpt/global/core/dataset/utils";
 import {createTrainingUsage} from "@fastgpt/service/support/wallet/usage/controller";
@@ -9,17 +9,12 @@ import {UsageSourceEnum} from "@fastgpt/global/support/wallet/usage/constants";
 import {getLLMModel, getVectorModel} from "@fastgpt/service/core/ai/model";
 import {pushDataListToTrainingQueue} from "@fastgpt/service/core/dataset/training/controller";
 import {MongoImage} from "@fastgpt/service/common/file/image/schema";
-import {jsonRes} from "@fastgpt/service/common/response";
 import {addLog} from "@fastgpt/service/common/system/log";
 import {startTrainingQueue} from "@/service/core/dataset/training/utils";
 import {DatasetSchemaType} from "@fastgpt/global/core/dataset/type";
-import {ClientSession} from "@fastgpt/service/common/mongo";
 import {mongoSessionRun} from "@fastgpt/service/common/mongo/sessionRun";
-import {createOneCollection} from "@fastgpt/service/core/dataset/collection/controller";
-import {putDatasetCollectionById} from "@/web/core/dataset/api";
 import {hashStr} from "@fastgpt/global/common/string/tools";
 import {MongoDatasetCollection} from "@fastgpt/service/core/dataset/collection/schema";
-import {getCollectionUpdateTime} from "@fastgpt/service/core/dataset/collection/utils";
 
 export const generateFileChunk = async ({
                                             teamId,
