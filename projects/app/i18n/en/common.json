@@ -1,13 +1,11 @@
 {
   "App": "App",
-  "Create New": "Create New",
   "Export": "Export",
   "Folder": "Folder",
   "Move": "Move",
   "Name": "Name",
   "Rename": "Rename",
   "Running": "Running",
-  "Select value is empty": "Selected value is empty",
   "UnKnow": "Unknown",
   "Warning": "Warning",
   "app": {
@@ -73,6 +71,7 @@
     "Confirm Import": "Confirm Import",
     "Confirm Move": "Move here",
     "Confirm Update": "Confirm Update",
+    "Confirm to leave the page": "",
     "Copy": "Copy",
     "Copy Successful": "Copied successfully",
     "Course": "Course",
@@ -108,11 +107,15 @@
     "Load Failed": "Load Failed",
     "Loading": "Loading...",
     "More settings": "More settings",
+    "MultipleRowSelect": {
+      "No data": ""
+    },
     "Name": "Name",
     "Name Can": "Name cannot be empty",
     "Name is empty": "Name cannot be empty",
     "New Create": "New Create",
     "Next Step": "Next",
+    "No more data": "",
     "Not open": "Not Open",
     "Number of words": "{{amount}} words",
     "OK": "OK",
@@ -149,6 +152,7 @@
     "Submit failed": "Submit failed",
     "Submit success": "Submitted successfully",
     "Sync success": "Sync success",
+    "System Output": "",
     "System version": "System Version",
     "Team": "Team",
     "Team Tags Set": "Tags",
@@ -275,13 +279,24 @@
       "Api request desc": "Integrate into existing systems via API, such as WeCom or Feishu",
       "App intro": "App Introduction",
       "App params config": "App Configuration",
+      "Auto Save time": "",
+      "Change to simple mode": "",
       "Chat Variable": "Chat Variable",
+      "Config schedule plan": "",
       "Config whisper": "Configure Voice Input",
       "External using": "External Usage",
+      "Interval timer config": "",
+      "Interval timer run": "",
+      "Interval timer tip": "",
       "Make a brief introduction of your app": "Provide a brief introduction for your AI application",
       "Max histories": "Max Chat Histories",
       "Max tokens": "Max Response Tokens",
       "Name and avatar": "Name & Avatar",
+      "Onclick to save": "",
+      "Publish": "",
+      "Publish Confirm": "",
+      "Publish Failed": "",
+      "Publish Success": "",
       "Question Guide": "Suggested Questions",
       "Question Guide Tip": "After the conversation ends, 3 guiding questions will be generated.",
       "Quote prompt": "Quote Template Prompt",
@@ -293,6 +308,7 @@
       "Select app from template": "Select from Template",
       "Select quote template": "Select Quote Template",
       "Set a name for your app": "Set a name for your application",
+      "Setting ai property": "",
       "Share link": "Share Link",
       "Share link desc": "Share link with other users, no login required for direct usage",
       "Share link desc detail": "You can directly share this model with other users for conversation, without them needing to log in. Note that this feature will consume your account balance, please keep the link secure!",
@@ -306,6 +322,7 @@
       "Tool call tip": "Automatically select one or more tools to use via the AI model. If this feature is enabled, knowledge base queries will also be considered a tool invocation. Please try to select AI models that support \"function calls\" for better results.",
       "ToolCall": {
         "No plugin": "No available plugins",
+        "Parameter setting": "",
         "Setting tool": "Configure Tools",
         "System": "System",
         "Team": "Team",
@@ -357,6 +374,20 @@
         "Select Using Way": "Select Usage Method",
         "Show History": "Show Chat History",
         "Web Link": "Web Link"
+      },
+      "publish": {
+        "Fei Shu Bot Desc": "",
+        "Fei shu bot": "",
+        "Fei shu bot publish": ""
+      },
+      "schedule": {
+        "Default prompt": "",
+        "Default prompt placeholder": "",
+        "Every day": "",
+        "Every month": "",
+        "Every week": "",
+        "Interval": "",
+        "Open schedule": ""
       },
       "setting": "Application Information Settings",
       "share": {
@@ -415,6 +446,7 @@
     },
     "chat": {
       "Admin Mark Content": "Corrected Response",
+      "Audio Not Support": "",
       "Audio Speech Error": "Speech Broadcast Error",
       "Cancel Speak": "Cancel Voice Input",
       "Canceled Speak": "Voice input has been canceled",
@@ -505,6 +537,7 @@
         "module http body": "Request Body",
         "module http result": "Response Body",
         "module http url": "Request URL",
+        "module if else Result": "",
         "module limit": "Single Search Limit",
         "module maxToken": "Max Response Tokens",
         "module model": "Model",
@@ -611,7 +644,8 @@
             "success": "Sync started"
           }
         },
-        "training": {}
+        "training": {
+        }
       },
       "data": {
         "Auxiliary Data": "Auxiliary Data",
@@ -833,6 +867,7 @@
         "Input description": "Can accept results from knowledge base search.",
         "label": "Knowledge Base Quote"
       },
+      "Default Value": "",
       "Default value": "Default Value",
       "Default value placeholder": "If left blank, empty string will be returned by default",
       "Edit intro": "Edit Description",
@@ -844,13 +879,22 @@
       "Http request settings": "Request Configuration",
       "Input Type": "Input Type",
       "Laf sync params": "Sync Parameters",
+      "Max Length": "",
+      "Max Length placeholder": "",
+      "Max Value": "",
+      "Min Value": "",
+      "Model List": "",
+      "No Config Tips": "",
+      "Output Type": "",
       "Plugin output must connect": "Custom output must be fully connected",
+      "Plugin tool Description": "",
       "QueryExtension": {
         "placeholder": "For example:\nQuestions about Python introduction and usage.\nThe current conversation is related to the game \"GTA5\".",
         "tip": "Describe the scope of the current conversation to help AI complete initial or ambiguous questions, enhancing the knowledge base's capability for continuous dialogue. It is recommended to briefly describe the context of the conversation when this feature is enabled, otherwise inaccurate completions may occur."
       },
       "Quote prompt setting": "Quote Prompt Configuration",
       "Qupte prompt setting": "",
+      "Select Data List": "",
       "Select app": "Select Application",
       "Setting quote prompt": "Configure Quote Prompt",
       "Unlink tip": "【{{name}}】has unfilled or unconnected parameters",
@@ -859,7 +903,8 @@
       "Variable import": "External Parameter Input",
       "edit": {
         "Field Already Exist": "Duplicate key",
-        "Field Edit": "Field Edit"
+        "Field Edit": "Field Edit",
+        "Field Name Cannot Be Empty": ""
       },
       "extract": {
         "Add field": "Add Field",
@@ -891,9 +936,12 @@
       },
       "input": {
         "Add Input": "Add Input",
+        "Add Branch": "Add Branch",
         "Input Number": "Input: {{length}}",
+        "add": "",
         "description": {
           "Background": "You can add introductions to specific content for better identification of user question types. This content is usually used to introduce something the model doesn't know.",
+          "HTTP Dynamic Input": "",
           "Http Request Header": "Custom request headers, please fill in strict JSON string.\n1. Ensure the last property has no comma\n2. Ensure keys are wrapped in double quotes\nFor example: {\"Authorization\":\"Bearer xxx\"}",
           "Http Request Url": "New HTTP request URL. If there are two \"Request URLs\", you can delete the module and add it again to fetch the latest module configuration.",
           "Quote": "Object array format, structure:\n[{q:'question',a:'answer'}]",
@@ -919,6 +967,7 @@
           "anyInput": "",
           "chat history": "Chat History",
           "switch": "Trigger",
+          "system params": "",
           "textEditor textarea": "Text Editor",
           "user question": "User Question"
         },
@@ -1015,18 +1064,23 @@
       },
       "valueType": {
         "any": "Any",
+        "arrayBoolean": "",
+        "arrayNumber": "",
+        "arrayObject": "",
+        "arrayString": "",
         "boolean": "Boolean",
         "chatHistory": "Chat History",
         "datasetQuote": "Quote Content",
         "dynamicTargetInput": "Dynamic Field Input",
         "number": "Number",
+        "object": "",
         "selectApp": "Select Application",
         "selectDataset": "Select Knowledge Base",
         "string": "String",
         "tools": "Tool Invocation"
       },
       "variable": {
-        "External type": "Externally Passed",
+        "Custom type": "Custom",
         "add option": "Add Option",
         "input type": "Text",
         "key": "Variable Key",
@@ -1051,8 +1105,78 @@
       "Intro placeholder": "If this plugin is invoked as a tool, this description will be used as the prompt."
     },
     "shareChat": {
-      "Init Error": "Conversation initialization failed",
-      "Init History Error": "Chat history initialization failed"
+      "Init Error": "Init Chat Error",
+      "Init History Error": "Init History Error"
+    },
+    "workflow": {
+      "Add variable": "Add",
+      "Can not delete node": "Can not delete the node",
+      "Change input type tip": "Changing the input type will empty the entered values, please confirm!",
+      "Check Failed": "Workflow verification fails. Check whether the node or connection is normal",
+      "Confirm stop debug": "Do you want to terminate debugging? Debugging information is not retained.",
+      "Copy node": "Copy node",
+      "Current workflow": "Current workflow",
+      "Custom inputs": "Inputs",
+      "Custom outputs": "Outputs",
+      "Custom variable": "Custom variable",
+      "Dataset quote": "Dataset quote",
+      "Debug": "Debug",
+      "Debug Node": "Workflow Debug",
+      "Failed": "Running failed",
+      "Not intro": "This node is not introduced",
+      "Run from here": "Run from here",
+      "Run result": "Run result",
+      "Running": "Running",
+      "Skipped": "Skipped",
+      "Stop debug": "Stop",
+      "Success": "Running success",
+      "Value type": "Type",
+      "Variable": {
+        "Variable type": "Variable type"
+      },
+      "Variable outputs": "Variables",
+      "chat": {
+        "Quote prompt": "Quote prompt"
+      },
+      "debug": {
+        "Done": "Done",
+        "Hide result": "Hide result",
+        "Not result": "Not result",
+        "Run result": "",
+        "Show result": "Show result"
+      },
+      "inputType": {
+        "JSON Editor": "JSON Editor",
+        "Manual input": "",
+        "Manual select": "Select",
+        "Reference": "Reference",
+        "Required": "Required",
+        "Select edit field": "Editable field",
+        "Select input default value": "Default value",
+        "Select input type": "Configurable input types",
+        "Select input type placeholder": "Please select a configurable input type",
+        "chat history": "History",
+        "dynamicTargetInput": "dynamic Target Input",
+        "input": "Input",
+        "number input": "number input",
+        "selectApp": "App Selector",
+        "selectDataset": "Dataset Selector",
+        "selectLLMModel": "Select Chat Model",
+        "switch": "Switch",
+        "target": "Target Data",
+        "textarea": "Textarea"
+      },
+      "publish": {
+        "OnRevert version": "Click back to that version",
+        "OnRevert version confirm": "Sure you want to roll back to this version? The configuration for the version in editing is saved for you and a new release is created for the rollback version.",
+        "histories": "Publiish histories"
+      },
+      "tool": {
+        "Handle": "Tool handle",
+        "Select Tool": "Select Tool"
+      },
+      "value": "Value",
+      "variable": "Variable"
     }
   },
   "dataset": {
@@ -1081,7 +1205,6 @@
     "Select Dataset": "Select this knowledge base",
     "Select Dataset Tips": "Only knowledge bases of the same index model can be selected",
     "Select Folder": "Enter folder",
-    "System Data Queue": "Queue Length",
     "Training Name": "Data Training",
     "Upload Time": "Upload Time",
     "collections": {

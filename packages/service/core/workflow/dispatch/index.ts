@@ -42,7 +42,8 @@ import { dispatchLafRequest } from './tools/runLaf';
 import { dispatchIfElse } from './tools/runIfElse';
 import { RuntimeEdgeItemType } from '@fastgpt/global/core/workflow/type/edge';
 import { getReferenceVariableValue } from '@fastgpt/global/core/workflow/runtime/utils';
-import { dispatchSystemConfig } from './init/systemConfiig';
+import { dispatchSystemConfig } from './init/systemConfig';
+import { dispatchUpdateVariable } from './tools/runUpdateVar';
 
 const callbackMap: Record<`${FlowNodeTypeEnum}`, Function> = {
   [FlowNodeTypeEnum.workflowStart]: dispatchWorkflowStart,
@@ -62,6 +63,7 @@ const callbackMap: Record<`${FlowNodeTypeEnum}`, Function> = {
   [FlowNodeTypeEnum.stopTool]: dispatchStopToolCall,
   [FlowNodeTypeEnum.lafModule]: dispatchLafRequest,
   [FlowNodeTypeEnum.ifElseNode]: dispatchIfElse,
+  [FlowNodeTypeEnum.variableUpdate]: dispatchUpdateVariable,
 
   // none
   [FlowNodeTypeEnum.systemConfig]: dispatchSystemConfig,
@@ -69,21 +71,25 @@ const callbackMap: Record<`${FlowNodeTypeEnum}`, Function> = {
   [FlowNodeTypeEnum.globalVariable]: () => Promise.resolve()
 };
 
-/* running */
-export async function dispatchWorkFlow({
-  res,
-  runtimeNodes = [],
-  runtimeEdges = [],
-  histories = [],
-  variables = {},
-  user,
-  stream = false,
-  detail = false,
-  ...props
-}: ChatDispatchProps & {
+type Props = ChatDispatchProps & {
   runtimeNodes: RuntimeNodeItemType[];
   runtimeEdges: RuntimeEdgeItemType[];
-}): Promise<DispatchFlowResponse> {
+};
+
+/* running */
+export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowResponse> {
+  let {
+    res,
+    runtimeNodes = [],
+    runtimeEdges = [],
+    histories = [],
+    variables = {},
+    user,
+    stream = false,
+    detail = false,
+    ...props
+  } = data;
+
   // set sse response headers
   if (stream && res) {
     res.setHeader('Content-Type', 'text/event-stream;charset=utf-8');
@@ -93,7 +99,7 @@ export async function dispatchWorkFlow({
   }
 
   variables = {
-    ...getSystemVariable({ timezone: user.timezone }),
+    ...getSystemVariable(data),
     ...variables
   };
 
@@ -283,7 +289,8 @@ export async function dispatchWorkFlow({
       node,
       runtimeNodes,
       runtimeEdges,
-      params
+      params,
+      mode: 'test'
     };
 
     // run module
@@ -362,7 +369,8 @@ export async function dispatchWorkFlow({
     },
     [DispatchNodeResponseKeyEnum.assistantResponses]:
       mergeAssistantResponseAnswerText(chatAssistantResponse),
-    [DispatchNodeResponseKeyEnum.toolResponses]: toolRunResponse
+    [DispatchNodeResponseKeyEnum.toolResponses]: toolRunResponse,
+    newVariables: removeSystemVariable(variables)
   };
 }
 
@@ -384,11 +392,33 @@ export function responseStatus({
 }
 
 /* get system variable */
-export function getSystemVariable({ timezone }: { timezone: string }) {
+export function getSystemVariable({
+  user,
+  appId,
+  chatId,
+  responseChatItemId,
+  histories = []
+}: Props) {
   return {
-    cTime: getSystemTime(timezone)
+    appId,
+    chatId,
+    responseChatItemId,
+    histories,
+    cTime: getSystemTime(user.timezone)
   };
 }
+
+/* remove system variable */
+const removeSystemVariable = (variables: Record<string, any>) => {
+  const copyVariables = { ...variables };
+  delete copyVariables.appId;
+  delete copyVariables.chatId;
+  delete copyVariables.responseChatItemId;
+  delete copyVariables.histories;
+  delete copyVariables.cTime;
+
+  return copyVariables;
+};
 
 /* Merge consecutive text messages into one */
 export const mergeAssistantResponseAnswerText = (response: AIChatItemValueItemType[]) => {

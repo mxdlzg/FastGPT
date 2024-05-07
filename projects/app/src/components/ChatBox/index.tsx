@@ -91,6 +91,7 @@ type Props = OutLinkChatAuthProps & {
   onStartChat?: (e: StartChatFnProps) => Promise<{
     responseText: string;
     [DispatchNodeResponseKeyEnum.nodeResponse]: ChatHistoryItemResType[];
+    newVariables?: Record<string, any>;
     isNewChat?: boolean;
   }>;
   onDelMessage?: (e: { contentId: string }) => void;
@@ -157,12 +158,6 @@ const ChatBox = (
     isChatting
   } = useChatProviderStore();
 
-  /* variable */
-  const filterVariableModules = useMemo(
-    () => variableModules.filter((item) => item.type !== VariableInputEnum.external),
-    [variableModules]
-  );
-
   // compute variable input is finish.
   const chatForm = useForm<ChatBoxInputFormType>({
     defaultValues: {
@@ -173,9 +168,15 @@ const ChatBox = (
     }
   });
   const { setValue, watch, handleSubmit } = chatForm;
-  const variables = watch('variables');
   const chatStarted = watch('chatStarted');
-  const variableIsFinish = useMemo(() => {
+
+  /* variable */
+  const variables = watch('variables');
+  const filterVariableModules = useMemo(
+    () => variableModules.filter((item) => item.type !== VariableInputEnum.custom),
+    [variableModules]
+  );
+  const variableIsFinish = (() => {
     if (!filterVariableModules || filterVariableModules.length === 0 || chatHistories.length > 0)
       return true;
 
@@ -187,7 +188,7 @@ const ChatBox = (
     }
 
     return chatStarted;
-  }, [filterVariableModules, chatHistories.length, chatStarted, variables]);
+  })();
 
   // 滚动到底部
   const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
@@ -359,6 +360,12 @@ const ChatBox = (
     [questionGuide, shareId, outLinkUid, teamId, teamToken]
   );
 
+  /* Abort chat completions, questionGuide */
+  const abortRequest = useCallback(() => {
+    chatController.current?.abort('stop');
+    questionGuideController.current?.abort('stop');
+  }, []);
+
   /**
    * user confirm send prompt
    */
@@ -381,6 +388,8 @@ const ChatBox = (
           });
           return;
         }
+
+        abortRequest();
 
         text = text.trim();
 
@@ -462,6 +471,7 @@ const ChatBox = (
           const {
             responseData,
             responseText,
+            newVariables,
             isNewChat = false
           } = await onStartChat({
             chatList: newChatList,
@@ -470,6 +480,8 @@ const ChatBox = (
             generatingMessage: (e) => generatingMessage({ ...e, autoTTSResponse }),
             variables
           });
+
+          newVariables && setValue('variables', newVariables);
 
           isNewChatReplace.current = isNewChat;
 
@@ -537,6 +549,7 @@ const ChatBox = (
       })();
     },
     [
+      abortRequest,
       chatHistories,
       createQuestionGuide,
       finishSegmentedAudio,
@@ -549,6 +562,7 @@ const ChatBox = (
       resetInputVal,
       setAudioPlayingChatId,
       setChatHistories,
+      setValue,
       splitText2Audio,
       startSegmentedAudio,
       t,
@@ -706,7 +720,7 @@ const ChatBox = (
         });
       };
     },
-    [appId, chatId, feedbackType, teamId, teamToken]
+    [appId, chatId, feedbackType, setChatHistories, teamId, teamToken]
   );
   const onADdUserDislike = useCallback(
     (chat: ChatSiteItemType) => {
@@ -743,7 +757,7 @@ const ChatBox = (
         return () => setFeedbackId(chat.dataId);
       }
     },
-    [appId, chatId, feedbackType, outLinkUid, shareId, teamId, teamToken]
+    [appId, chatId, feedbackType, outLinkUid, setChatHistories, shareId, teamId, teamToken]
   );
   const onReadUserDislike = useCallback(
     (chat: ChatSiteItemType) => {
@@ -864,6 +878,7 @@ const ChatBox = (
       setValue('variables', e || defaultVal);
     },
     resetHistory(e) {
+      abortRequest();
       setValue('chatStarted', e.length > 0);
       setChatHistories(e);
     },

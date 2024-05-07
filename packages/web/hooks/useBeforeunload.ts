@@ -8,13 +8,15 @@ export const useBeforeunload = (props?: { callback?: () => any; tip?: string }) 
 
   useEffect(() => {
     const listen =
-      process.env.NODE_ENV !== 'production'
+      process.env.NODE_ENV === 'production'
         ? (e: any) => {
             e.preventDefault();
             e.returnValue = tip;
             callback?.();
           }
-        : () => {};
+        : () => {
+            callback?.();
+          };
     window.addEventListener('beforeunload', listen);
 
     return () => {

@@ -24,7 +24,10 @@ import { pushResult2Remote, addOutLinkUsage } from '@fastgpt/service/support/out
 import requestIp from 'request-ip';
 import { getUsageSourceByAuthType } from '@fastgpt/global/support/wallet/usage/tools';
 import { authTeamSpaceToken } from '@/service/support/permission/auth/team';
-import { filterPublicNodeResponseData } from '@fastgpt/global/core/chat/utils';
+import {
+  filterPublicNodeResponseData,
+  removeEmptyUserInput
+} from '@fastgpt/global/core/chat/utils';
 import { updateApiKeyUsage } from '@fastgpt/service/support/openapi/tools';
 import { connectToDatabase } from '@/service/mongo';
 import { getUserChatInfoAndAuthTeamPoints } from '@/service/support/permission/auth/team';
@@ -42,7 +45,6 @@ import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/workflow/runti
 import { dispatchWorkFlowV1 } from '@fastgpt/service/core/workflow/dispatchV1';
 import { setEntryEntries } from '@fastgpt/service/core/workflow/dispatchV1/utils';
 import { NextAPI } from '@/service/middle/entry';
-import { MongoAppVersion } from '@fastgpt/service/core/app/versionSchema';
 import { getAppLatestVersion } from '@fastgpt/service/core/app/controller';
 
 type FastGptWebChatProps = {
@@ -179,7 +181,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const responseChatItemId: string | undefined = messages[messages.length - 1].dataId;
 
     /* start flow controller */
-    const { flowResponses, flowUsages, assistantResponses } = await (async () => {
+    const { flowResponses, flowUsages, assistantResponses, newVariables } = await (async () => {
       if (app.version === 'v2') {
         return dispatchWorkFlow({
           res,
@@ -192,11 +194,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           responseChatItemId,
           runtimeNodes: storeNodes2RuntimeNodes(nodes, getDefaultEntryNodeIds(nodes)),
           runtimeEdges: initWorkflowEdgeStatus(edges),
-          variables: {
-            ...variables,
-            userChatInput: text
-          },
-          inputFiles: files,
+          variables,
+          query: removeEmptyUserInput(question.value),
           histories: concatHistories,
           stream,
           detail,
@@ -247,7 +246,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         appId: app._id,
         teamId,
         tmbId: tmbId,
-        variables,
+        variables: newVariables,
         isUpdateUseTime: isOwnerUse && source === ChatSourceEnum.online, // owner update use time
         shareId,
         outLinkUid: outLinkUserId,
@@ -287,6 +286,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         res,
         event: detail ? SseResponseEventEnum.answer : undefined,
         data: '[DONE]'
+      });
+      responseWrite({
+        res,
+        event: SseResponseEventEnum.updateVariables,
+        data: JSON.stringify(newVariables)
       });
 
       if (responseDetail && detail) {

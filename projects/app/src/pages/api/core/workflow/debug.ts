@@ -53,11 +53,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       appId,
       runtimeNodes: nodes,
       runtimeEdges: edges,
-      variables: {
-        ...variables,
-        userChatInput: ''
-      },
-      inputFiles: [],
+      variables,
+      query: [],
       histories: [],
       stream: false,
       detail: true,

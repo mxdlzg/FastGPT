@@ -15,6 +15,7 @@ import type {
 } from '../app/type';
 import { EditorVariablePickerType } from '../../../web/components/common/Textarea/PromptEditor/type';
 import { defaultWhisperConfig } from '../app/constants';
+import { IfElseResultEnum } from './template/system/ifElse/constant';
 
 export const getHandleId = (nodeId: string, type: 'source' | 'target', key: string) => {
   return `${nodeId}-${type}-${key}`;
@@ -131,4 +132,12 @@ export const formatEditorVariablePickerIcon = (
     ...item,
     icon: item.type ? variableMap[item.type]?.icon : variableMap['input'].icon
   }));
+};
+
+export const isReferenceValue = (value: any): boolean => {
+  return Array.isArray(value) && value.length === 2 && typeof value[0] === 'string';
+};
+
+export const getElseIFLabel = (i: number) => {
+  return i === 0 ? IfElseResultEnum.IF : `${IfElseResultEnum.ELSE_IF} ${i}`;
 };

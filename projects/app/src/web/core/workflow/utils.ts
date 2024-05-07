@@ -14,7 +14,7 @@ import { EmptyNode } from '@fastgpt/global/core/workflow/template/system/emptyNo
 import { StoreEdgeItemType } from '@fastgpt/global/core/workflow/type/edge';
 import { getNanoid } from '@fastgpt/global/common/string/tools';
 import { getGlobalVariableNode } from './adapt';
-import { VARIABLE_NODE_ID } from '@fastgpt/global/core/workflow/constants';
+import { VARIABLE_NODE_ID, WorkflowIOValueTypeEnum } from '@fastgpt/global/core/workflow/constants';
 import { NodeInputKeyEnum, NodeOutputKeyEnum } from '@fastgpt/global/core/workflow/constants';
 import { EditorVariablePickerType } from '@fastgpt/web/components/common/Textarea/PromptEditor/type';
 import {
@@ -24,6 +24,9 @@ import {
 } from '@fastgpt/global/core/workflow/utils';
 import { getSystemVariables } from '../app/utils';
 import { TFunction } from 'next-i18next';
+import { ReferenceValueProps } from '@fastgpt/global/core/workflow/type/io';
+import { IfElseListItemType } from '@fastgpt/global/core/workflow/template/system/ifElse/type';
+import { VariableConditionEnum } from '@fastgpt/global/core/workflow/template/system/ifElse/constant';
 
 export const nodeTemplate2FlowNode = ({
   template,
@@ -140,6 +143,26 @@ export const computedNodeInputReference = ({
 
   return sourceNodes;
 };
+export const getReferenceDataValueType = ({
+  variable,
+  nodeList,
+  t
+}: {
+  variable?: ReferenceValueProps;
+  nodeList: FlowNodeItemType[];
+  t: TFunction;
+}) => {
+  if (!variable) return WorkflowIOValueTypeEnum.any;
+
+  const node = nodeList.find((node) => node.nodeId === variable[0]);
+  const systemVariables = getWorkflowGlobalVariables(nodeList, t);
+
+  if (!node) return systemVariables.find((item) => item.key === variable?.[1])?.valueType;
+
+  const output = node.outputs.find((item) => item.id === variable[1]);
+  if (!output) return WorkflowIOValueTypeEnum.any;
+  return output.valueType;
+};
 
 /* Connection rules */
 export const checkWorkflowNodeAndConnection = ({
@@ -165,6 +188,29 @@ export const checkWorkflowNodeAndConnection = ({
       data.flowNodeType === FlowNodeTypeEnum.workflowStart
     ) {
       continue;
+    }
+
+    if (data.flowNodeType === FlowNodeTypeEnum.ifElseNode) {
+      const ifElseList: IfElseListItemType[] = inputs.find(
+        (input) => input.key === NodeInputKeyEnum.ifElseList
+      )?.value;
+      if (
+        ifElseList.some((item) => {
+          return item.list.some((listItem) => {
+            return (
+              listItem.variable === undefined ||
+              listItem.condition === undefined ||
+              (listItem.value === undefined &&
+                listItem.condition !== VariableConditionEnum.isEmpty &&
+                listItem.condition !== VariableConditionEnum.isNotEmpty)
+            );
+          });
+        })
+      ) {
+        return [data.nodeId];
+      } else {
+        continue;
+      }
     }
 
     // check node input
@@ -243,7 +289,10 @@ export const getWorkflowGlobalVariables = (
 ): EditorVariablePickerType[] => {
   const globalVariables = formatEditorVariablePickerIcon(
     splitGuideModule(getGuideModule(nodes))?.variableModules || []
-  );
+  ).map((item) => ({
+    ...item,
+    valueType: WorkflowIOValueTypeEnum.any
+  }));
 
   const systemVariables = getSystemVariables(t);
 

@@ -38,6 +38,8 @@ type Props = FlowNodeItemType & {
 
 const NodeCard = (props: Props) => {
   const { t } = useTranslation();
+  const { toast } = useToast();
+
   const {
     children,
     avatar = LOGO_ICON,
@@ -59,6 +61,13 @@ const NodeCard = (props: Props) => {
   const nodeList = useContextSelector(WorkflowContext, (v) => v.nodeList);
   const setHoverNodeId = useContextSelector(WorkflowContext, (v) => v.setHoverNodeId);
   const onUpdateNodeError = useContextSelector(WorkflowContext, (v) => v.onUpdateNodeError);
+  const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
+
+  // custom title edit
+  const { onOpenModal: onOpenCustomTitleModal, EditModal: EditTitleModal } = useEditTitle({
+    title: t('common.Custom Title'),
+    placeholder: t('app.module.Custom Title Tip') || ''
+  });
 
   const showToolHandle = useMemo(
     () => isTool && !!nodeList.find((item) => item?.flowNodeType === FlowNodeTypeEnum.tools),
@@ -70,7 +79,6 @@ const NodeCard = (props: Props) => {
     return (
       <Box position={'relative'}>
         {/* debug */}
-        <NodeDebugResponse nodeId={nodeId} debugResult={debugResult} />
         <Box className="custom-drag-handle" px={4} py={3}>
           {/* tool target handle */}
           {showToolHandle && <ToolTargetHandle nodeId={nodeId} />}
@@ -81,13 +89,42 @@ const NodeCard = (props: Props) => {
             <Box ml={3} fontSize={'lg'} fontWeight={'medium'}>
               {t(name)}
             </Box>
+            {!menuForbid?.rename && (
+              <MyIcon
+                className="controller-rename"
+                display={'none'}
+                name={'edit'}
+                w={'14px'}
+                cursor={'pointer'}
+                ml={1}
+                color={'myGray.500'}
+                _hover={{ color: 'primary.600' }}
+                onClick={() => {
+                  onOpenCustomTitleModal({
+                    defaultVal: name,
+                    onSuccess: (e) => {
+                      if (!e) {
+                        return toast({
+                          title: t('app.modules.Title is required'),
+                          status: 'warning'
+                        });
+                      }
+                      onChangeNode({
+                        nodeId,
+                        type: 'attr',
+                        key: 'name',
+                        value: e
+                      });
+                    }
+                  });
+                }}
+              />
+            )}
           </Flex>
           <MenuRender
-            name={name}
             nodeId={nodeId}
             pluginId={pluginId}
             flowNodeType={flowNodeType}
-            inputs={inputs}
             menuForbid={menuForbid}
           />
           <NodeIntro nodeId={nodeId} intro={intro} />
@@ -96,16 +133,17 @@ const NodeCard = (props: Props) => {
     );
   }, [
     nodeId,
-    debugResult,
     showToolHandle,
     avatar,
     t,
     name,
+    menuForbid,
     pluginId,
     flowNodeType,
-    inputs,
-    menuForbid,
-    intro
+    intro,
+    onOpenCustomTitleModal,
+    onChangeNode,
+    toast
   ]);
 
   return (
@@ -123,6 +161,9 @@ const NodeCard = (props: Props) => {
         },
         '& .controller-debug': {
           display: 'block'
+        },
+        '& .controller-rename': {
+          display: 'block'
         }
       }}
       onMouseEnter={() => setHoverNodeId(nodeId)}
@@ -136,10 +177,13 @@ const NodeCard = (props: Props) => {
             borderColor: selected ? 'primary.600' : 'borderColor.base'
           })}
     >
+      <NodeDebugResponse nodeId={nodeId} debugResult={debugResult} />
       {Header}
       {children}
       <ConnectionSourceHandle nodeId={nodeId} />
       <ConnectionTargetHandle nodeId={nodeId} />
+
+      <EditTitleModal maxLength={20} />
     </Box>
   );
 };
@@ -147,18 +191,14 @@ const NodeCard = (props: Props) => {
 export default React.memo(NodeCard);
 
 const MenuRender = React.memo(function MenuRender({
-  name,
   nodeId,
   pluginId,
   flowNodeType,
-  inputs,
   menuForbid
 }: {
-  name: string;
   nodeId: string;
   pluginId?: string;
   flowNodeType: Props['flowNodeType'];
-  inputs: Props['inputs'];
   menuForbid?: Props['menuForbid'];
 }) {
   const { t } = useTranslation();
@@ -169,11 +209,7 @@ const MenuRender = React.memo(function MenuRender({
   const { openConfirm: onOpenConfirmSync, ConfirmModal: ConfirmSyncModal } = useConfirm({
     content: t('module.Confirm Sync Plugin')
   });
-  // custom title edit
-  const { onOpenModal: onOpenCustomTitleModal, EditModal: EditTitleModal } = useEditTitle({
-    title: t('common.Custom Title'),
-    placeholder: t('app.module.Custom Title Tip') || ''
-  });
+
   const { openConfirm: onOpenConfirmDeleteNode, ConfirmModal: ConfirmDeleteModal } = useConfirm({
     content: t('core.module.Confirm Delete Node'),
     type: 'delete'
@@ -182,7 +218,6 @@ const MenuRender = React.memo(function MenuRender({
   const setNodes = useContextSelector(WorkflowContext, (v) => v.setNodes);
   const onResetNode = useContextSelector(WorkflowContext, (v) => v.onResetNode);
   const setEdges = useContextSelector(WorkflowContext, (v) => v.setEdges);
-  const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
 
   const onCopyNode = useCallback(
     (nodeId: string) => {
@@ -223,6 +258,22 @@ const MenuRender = React.memo(function MenuRender({
     },
     [setEdges, setNodes]
   );
+  const onclickSyncVersion = useCallback(async () => {
+    if (!pluginId) return;
+    try {
+      setLoading(true);
+      onResetNode({
+        id: nodeId,
+        node: await getPreviewPluginModule(pluginId)
+      });
+    } catch (e) {
+      return toast({
+        status: 'error',
+        title: getErrText(e, t('plugin.Get Plugin Module Detail Failed'))
+      });
+    }
+    setLoading(false);
+  }, [nodeId, onResetNode, pluginId, setLoading, t, toast]);
 
   const Render = useMemo(() => {
     const menuList = [
@@ -236,61 +287,6 @@ const MenuRender = React.memo(function MenuRender({
               onClick: () => openDebugNode({ entryNodeId: nodeId })
             }
           ]),
-      ...(flowNodeType === FlowNodeTypeEnum.pluginModule
-        ? [
-            {
-              icon: 'common/refreshLight',
-              label: t('plugin.Synchronous version'),
-              variant: 'whiteBase',
-              onClick: () => {
-                if (!pluginId) return;
-                onOpenConfirmSync(async () => {
-                  try {
-                    setLoading(true);
-                    const pluginModule = await getPreviewPluginModule(pluginId);
-                    onResetNode({
-                      id: nodeId,
-                      module: pluginModule
-                    });
-                  } catch (e) {
-                    return toast({
-                      status: 'error',
-                      title: getErrText(e, t('plugin.Get Plugin Module Detail Failed'))
-                    });
-                  }
-                  setLoading(false);
-                })();
-              }
-            }
-          ]
-        : []),
-      ...(menuForbid?.rename
-        ? []
-        : [
-            {
-              icon: 'edit',
-              label: t('common.Rename'),
-              variant: 'whiteBase',
-              onClick: () =>
-                onOpenCustomTitleModal({
-                  defaultVal: name,
-                  onSuccess: (e) => {
-                    if (!e) {
-                      return toast({
-                        title: t('app.modules.Title is required'),
-                        status: 'warning'
-                      });
-                    }
-                    onChangeNode({
-                      nodeId,
-                      type: 'attr',
-                      key: 'name',
-                      value: e
-                    });
-                  }
-                })
-            }
-          ]),
       ...(menuForbid?.copy
         ? []
         : [
@@ -301,6 +297,17 @@ const MenuRender = React.memo(function MenuRender({
               onClick: () => onCopyNode(nodeId)
             }
           ]),
+      ...(flowNodeType === FlowNodeTypeEnum.pluginModule
+        ? [
+            {
+              icon: 'common/refreshLight',
+              label: t('plugin.Synchronous version'),
+              variant: 'whiteBase',
+              onClick: onOpenConfirmSync(onclickSyncVersion)
+            }
+          ]
+        : []),
+
       ...(menuForbid?.delete
         ? []
         : [
@@ -342,7 +349,6 @@ const MenuRender = React.memo(function MenuRender({
             </Box>
           ))}
         </Box>
-        <EditTitleModal maxLength={20} />
         <ConfirmSyncModal />
         <ConfirmDeleteModal />
         <DebugInputModal />
@@ -352,26 +358,18 @@ const MenuRender = React.memo(function MenuRender({
     ConfirmDeleteModal,
     ConfirmSyncModal,
     DebugInputModal,
-    EditTitleModal,
     flowNodeType,
     menuForbid?.copy,
     menuForbid?.debug,
     menuForbid?.delete,
-    menuForbid?.rename,
-    name,
     nodeId,
-    onChangeNode,
     onCopyNode,
     onDelNode,
     onOpenConfirmDeleteNode,
     onOpenConfirmSync,
-    onOpenCustomTitleModal,
-    onResetNode,
+    onclickSyncVersion,
     openDebugNode,
-    pluginId,
-    setLoading,
-    t,
-    toast
+    t
   ]);
 
   return Render;
@@ -388,7 +386,7 @@ const NodeIntro = React.memo(function NodeIntro({
   const splitToolInputs = useContextSelector(WorkflowContext, (ctx) => ctx.splitToolInputs);
   const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
 
-  const moduleIsTool = useMemo(() => {
+  const NodeIsTool = useMemo(() => {
     const { isTool } = splitToolInputs([], nodeId);
     return isTool;
   }, [nodeId, splitToolInputs]);
@@ -407,7 +405,7 @@ const NodeIntro = React.memo(function NodeIntro({
           <Box fontSize={'xs'} color={'myGray.600'} flex={'1 0 0'}>
             {t(intro)}
           </Box>
-          {moduleIsTool && (
+          {NodeIsTool && (
             <Button
               size={'xs'}
               variant={'whiteBase'}
@@ -432,7 +430,7 @@ const NodeIntro = React.memo(function NodeIntro({
         <EditIntroModal maxLength={500} />
       </>
     );
-  }, [EditIntroModal, intro, moduleIsTool, nodeId, onChangeNode, onOpenIntroModal, t]);
+  }, [EditIntroModal, intro, NodeIsTool, nodeId, onChangeNode, onOpenIntroModal, t]);
 
   return Render;
 });
@@ -526,7 +524,8 @@ const NodeDebugResponse = React.memo(function NodeDebugResponse({
             top={0}
             zIndex={10}
             w={'420px'}
-            maxH={'540px'}
+            maxH={'100%'}
+            minH={'300px'}
             overflowY={'auto'}
             border={'base'}
           >

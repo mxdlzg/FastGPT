@@ -1,13 +1,11 @@
 {
   "App": "应用",
-  "Create New": "",
   "Export": "导出",
   "Folder": "文件夹",
   "Move": "移动",
   "Name": "名称",
   "Rename": "重命名",
   "Running": "运行中",
-  "Select value is empty": "选择的内容为空",
   "UnKnow": "未知",
   "Warning": "提示",
   "app": {
@@ -646,8 +644,7 @@
             "success": "开始同步"
           }
         },
-        "training": {
-        }
+        "training": {}
       },
       "data": {
         "Auxiliary Data": "辅助数据",
@@ -923,7 +920,7 @@
         "AppId": "应用的ID",
         "ChatId": "当前对话ID",
         "Current time": "当前时间",
-        "Histories": "历史记录,最多取10条",
+        "Histories": "最近10条聊天记录",
         "Key already exists": "Key 已经存在",
         "Key cannot be empty": "参数名不能为空",
         "Props name": "参数名",
@@ -940,6 +937,7 @@
         "Add Input": "添加入参",
         "Input Number": "入参: {{length}}",
         "add": "添加条件",
+        "Add Branch": "添加分支",
         "description": {
           "Background": "你可以添加一些特定内容的介绍，从而更好的识别用户的问题类型。这个内容通常是给模型介绍一个它不知道的内容。",
           "HTTP Dynamic Input": "接收前方节点的输出值作为变量，这些变量可以被HTTP请求参数使用。",
@@ -975,6 +973,17 @@
         "placeholder": {
           "Classify background": "例如: \n1. AIGC（人工智能生成内容）是指使用人工智能技术自动或半自动地生成数字内容，如文本、图像、音乐、视频等。\n2. AIGC技术包括但不限于自然语言处理、计算机视觉、机器学习和深度学习。这些技术可以创建新内容或修改现有内容，以满足特定的创意、教育、娱乐或信息需求。"
         }
+      },
+      "inputType": {
+        "chat history": "",
+        "dynamicTargetInput": "",
+        "input": "",
+        "selectApp": "",
+        "selectDataset": "",
+        "selectLLMModel": "",
+        "switch": "",
+        "target": "",
+        "textarea": ""
       },
       "laf": {
         "Select laf function": "选择laf函数"
@@ -1070,7 +1079,7 @@
         "tools": "工具调用"
       },
       "variable": {
-        "External type": "外部传入",
+        "Custom type": "自定义变量",
         "add option": "添加选项",
         "input type": "文本",
         "key": "变量 key",
@@ -1121,6 +1130,9 @@
       "Stop debug": "停止调试",
       "Success": "运行成功",
       "Value type": "数据类型",
+      "Variable": {
+        "Variable type": "变量类型"
+      },
       "Variable outputs": "全局变量",
       "chat": {
         "Quote prompt": "引用提示词"
@@ -1155,13 +1167,15 @@
       },
       "publish": {
         "OnRevert version": "点击回退到该版本",
-        "OnRevert version confirm": "确认回退该版本？",
+        "OnRevert version confirm": "确认回退至该版本？会为您保存编辑中版本的配置，并为回退版本创建一个新的发布版本。",
         "histories": "发布记录"
       },
       "tool": {
         "Handle": "工具连接器",
         "Select Tool": "选择工具"
-      }
+      },
+      "value": "值",
+      "variable": "变量"
     }
   },
   "dataset": {
@@ -1190,7 +1204,6 @@
     "Select Dataset": "选择该知识库",
     "Select Dataset Tips": "仅能选择同一个索引模型的知识库",
     "Select Folder": "进入文件夹",
-    "System Data Queue": "排队长度",
     "Training Name": "数据训练",
     "Upload Time": "上传时间",
     "collections": {

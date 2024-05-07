@@ -1,18 +1,25 @@
-import { NodeInputKeyEnum } from '@fastgpt/global/core/workflow/constants';
+import { NodeInputKeyEnum, NodeOutputKeyEnum } from '@fastgpt/global/core/workflow/constants';
 import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import { DispatchNodeResultType } from '@fastgpt/global/core/workflow/runtime/type';
-import { VariableConditionEnum } from '@fastgpt/global/core/workflow/template/system/ifElse/constant';
 import {
+  IfElseResultEnum,
+  VariableConditionEnum
+} from '@fastgpt/global/core/workflow/template/system/ifElse/constant';
+import {
+  ConditionListItemType,
   IfElseConditionType,
   IfElseListItemType
 } from '@fastgpt/global/core/workflow/template/system/ifElse/type';
 import { ModuleDispatchProps } from '@fastgpt/global/core/workflow/type';
-import { getHandleId } from '@fastgpt/global/core/workflow/utils';
+import { getElseIFLabel, getHandleId } from '@fastgpt/global/core/workflow/utils';
 import { getReferenceVariableValue } from '@fastgpt/global/core/workflow/runtime/utils';
 
 type Props = ModuleDispatchProps<{
   [NodeInputKeyEnum.condition]: IfElseConditionType;
   [NodeInputKeyEnum.ifElseList]: IfElseListItemType[];
+}>;
+type Response = DispatchNodeResultType<{
+  [NodeOutputKeyEnum.ifElseResult]: string;
 }>;
 
 function checkCondition(condition: VariableConditionEnum, variableValue: any, value: string) {
@@ -41,15 +48,13 @@ function checkCondition(condition: VariableConditionEnum, variableValue: any, va
   return (operations[condition] || (() => false))();
 }
 
-export const dispatchIfElse = async (props: Props): Promise<DispatchNodeResultType<{}>> => {
-  const {
-    params,
-    runtimeNodes,
-    variables,
-    node: { nodeId }
-  } = props;
-  const { condition, ifElseList } = params;
-  const listResult = ifElseList.map((item) => {
+function getResult(
+  condition: IfElseConditionType,
+  list: ConditionListItemType[],
+  variables: any,
+  runtimeNodes: any[]
+) {
+  const listResult = list.map((item) => {
     const { variable, condition: variableCondition, value } = item;
 
     const variableValue = getReferenceVariableValue({
@@ -61,15 +66,41 @@ export const dispatchIfElse = async (props: Props): Promise<DispatchNodeResultTy
     return checkCondition(variableCondition as VariableConditionEnum, variableValue, value || '');
   });
 
-  const result = condition === 'AND' ? listResult.every(Boolean) : listResult.some(Boolean);
+  return condition === 'AND' ? listResult.every(Boolean) : listResult.some(Boolean);
+}
+
+export const dispatchIfElse = async (props: Props): Promise<Response> => {
+  const {
+    params,
+    runtimeNodes,
+    variables,
+    node: { nodeId }
+  } = props;
+  const { ifElseList } = params;
+
+  let res = IfElseResultEnum.ELSE as string;
+  for (let i = 0; i < ifElseList.length; i++) {
+    const item = ifElseList[i];
+    const result = getResult(item.condition, item.list, variables, runtimeNodes);
+    if (result) {
+      res = getElseIFLabel(i);
+      break;
+    }
+  }
+
+  const resArray = Array.from({ length: ifElseList.length + 1 }, (_, index) => {
+    const label = index < ifElseList.length ? getElseIFLabel(index) : IfElseResultEnum.ELSE;
+    return getHandleId(nodeId, 'source', label);
+  });
 
   return {
+    [NodeOutputKeyEnum.ifElseResult]: res,
     [DispatchNodeResponseKeyEnum.nodeResponse]: {
       totalPoints: 0,
-      ifElseResult: result ? 'IF' : 'ELSE'
+      ifElseResult: res
     },
-    [DispatchNodeResponseKeyEnum.skipHandleId]: result
-      ? [getHandleId(nodeId, 'source', 'ELSE')]
-      : [getHandleId(nodeId, 'source', 'IF')]
+    [DispatchNodeResponseKeyEnum.skipHandleId]: resArray.filter(
+      (item) => item !== getHandleId(nodeId, 'source', res)
+    )
   };
 };

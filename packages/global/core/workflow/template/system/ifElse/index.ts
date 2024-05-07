@@ -12,7 +12,7 @@ import {
 import { FlowNodeTemplateType } from '../../../type';
 import { getHandleConfig } from '../../utils';
 
-export const ifElseNode: FlowNodeTemplateType = {
+export const IfElseNode: FlowNodeTemplateType = {
   id: FlowNodeTypeEnum.ifElseNode,
   templateType: FlowNodeTemplateTypeEnum.tools,
   flowNodeType: FlowNodeTypeEnum.ifElseNode,
@@ -24,41 +24,31 @@ export const ifElseNode: FlowNodeTemplateType = {
   showStatus: true,
   inputs: [
     {
-      key: NodeInputKeyEnum.condition,
-      valueType: WorkflowIOValueTypeEnum.string,
-      label: '',
-      renderTypeList: [FlowNodeInputTypeEnum.hidden],
-      required: false,
-      value: 'AND' // AND, OR
-    },
-    {
       key: NodeInputKeyEnum.ifElseList,
       renderTypeList: [FlowNodeInputTypeEnum.hidden],
       valueType: WorkflowIOValueTypeEnum.any,
       label: '',
       value: [
         {
-          variable: undefined,
-          condition: undefined,
-          value: undefined
+          condition: 'AND', // AND, OR
+          list: [
+            {
+              variable: undefined,
+              condition: undefined,
+              value: undefined
+            }
+          ]
         }
       ]
     }
   ],
   outputs: [
     {
-      id: NodeOutputKeyEnum.if,
-      key: NodeOutputKeyEnum.if,
-      label: 'IF',
-      valueType: WorkflowIOValueTypeEnum.any,
-      type: FlowNodeOutputTypeEnum.source
-    },
-    {
-      id: NodeOutputKeyEnum.else,
-      key: NodeOutputKeyEnum.else,
-      label: 'ELSE',
-      valueType: WorkflowIOValueTypeEnum.any,
-      type: FlowNodeOutputTypeEnum.source
+      id: NodeOutputKeyEnum.ifElseResult,
+      key: NodeOutputKeyEnum.ifElseResult,
+      label: '判断结果',
+      valueType: WorkflowIOValueTypeEnum.string,
+      type: FlowNodeOutputTypeEnum.static
     }
   ]
 };
