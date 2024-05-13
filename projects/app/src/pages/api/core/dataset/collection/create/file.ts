@@ -12,11 +12,11 @@ import {
   TrainingModeEnum
 } from '@fastgpt/global/core/dataset/constants';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
-import {BucketNameEnum} from "@fastgpt/global/common/file/constants";
-import {MongoRwaTextBuffer} from "@fastgpt/service/common/buffer/rawText/schema";
-import {generateFileChunk} from "@/service/events/generateFileChunk";
-import {addLog} from "@fastgpt/service/common/system/log";
-import {fileQueue} from "@fastgpt/service/common/system/systemQueue"
+import { BucketNameEnum } from "@fastgpt/global/common/file/constants";
+import { MongoRawTextBuffer } from "@fastgpt/service/common/buffer/rawText/schema";
+import { generateFileChunk } from "@/service/events/generateFileChunk";
+import { addLog } from "@fastgpt/service/common/system/log";
+import { fileQueue } from "@fastgpt/service/common/system/systemQueue"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   const {
@@ -41,15 +41,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     // 1. read filename (Without real content, in preview, just name)
     let filename = "";
-    const fileBuffer = await MongoRwaTextBuffer.findOne({sourceId: fileId}).lean();
+    const fileBuffer = await MongoRawTextBuffer.findOne({ sourceId: fileId }).lean();
     if (fileBuffer) {
       filename = fileBuffer.metadata?.filename || ''
     } else {
-      const file = await getFileById({bucketName: BucketNameEnum.dataset, fileId});
+      const file = await getFileById({ bucketName: BucketNameEnum.dataset, fileId });
       filename = file?.filename || "";
     }
 
-    if (filename == ""){
+    if (filename == "") {
       throw new Error("Cannot find file in upload file cache!");
     }
 
@@ -89,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       chunkSplitter,
       collectionId,
       qaPrompt
-    }).then(()=>{
+    }).then(() => {
       addLog.info(`${filename} | generateFileChunk executed end.`);
     }));
     addLog.info(`${filename} | fileQueue added.`);

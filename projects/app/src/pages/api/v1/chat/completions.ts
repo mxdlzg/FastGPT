@@ -246,6 +246,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         appId: app._id,
         teamId,
         tmbId: tmbId,
+        nodes,
         variables: newVariables,
         isUpdateUseTime: isOwnerUse && source === ChatSourceEnum.online, // owner update use time
         shareId,
@@ -287,13 +288,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         event: detail ? SseResponseEventEnum.answer : undefined,
         data: '[DONE]'
       });
-      responseWrite({
-        res,
-        event: SseResponseEventEnum.updateVariables,
-        data: JSON.stringify(newVariables)
-      });
 
       if (responseDetail && detail) {
+        responseWrite({
+          res,
+          event: SseResponseEventEnum.updateVariables,
+          data: JSON.stringify(newVariables)
+        });
         responseWrite({
           res,
           event: SseResponseEventEnum.flowResponses,
@@ -360,12 +361,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 export default NextAPI(handler);
-
-export const config = {
-  api: {
-    responseLimit: '20mb'
-  }
-};
 
 const authShareChat = async ({
   chatId,
@@ -524,4 +519,10 @@ const authHeaderRequest = async ({
     authType,
     canWrite
   };
+};
+
+export const config = {
+  api: {
+    responseLimit: '20mb'
+  }
 };

@@ -36,9 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           preview: true
         });
         // split chunks (5 chunk)
-        const sliceRawText = 10 * chunkSize;
         const { chunks } = splitText2Chunks({
-          text: rawText.slice(0, sliceRawText),
+          text: rawText,
           chunkLen: chunkSize,
           overlapRatio,
           customReg: customSplitChar ? [customSplitChar] : []

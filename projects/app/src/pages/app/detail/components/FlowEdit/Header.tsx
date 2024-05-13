@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Flex, IconButton, useTheme, useDisclosure, Button } from '@chakra-ui/react';
 import { StoreNodeItemType } from '@fastgpt/global/core/workflow/type/index.d';
 import { AppSchema } from '@fastgpt/global/core/app/type.d';
@@ -25,7 +25,8 @@ import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
 import { formatTime2HM } from '@fastgpt/global/common/string/time';
 import { useContextSelector } from 'use-context-selector';
 import { WorkflowContext, getWorkflowStore } from '@/components/core/workflow/context';
-import { useInterval } from 'ahooks';
+import { useInterval, useUpdateEffect } from 'ahooks';
+import { useI18n } from '@/web/context/I18n';
 
 const ImportSettings = dynamic(() => import('@/components/core/workflow/Flow/ImportSettings'));
 const PublishHistories = dynamic(
@@ -51,9 +52,13 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
     >
   >;
 }) {
+  const isV2Workflow = app?.version === 'v2';
+
   const theme = useTheme();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { appT } = useI18n();
+
   const { copyData } = useCopyData();
   const { openConfirm: openConfigPublish, ConfirmModal } = useConfirm({
     content: t('core.app.Publish Confirm')
@@ -97,7 +102,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
   const onclickSave = useCallback(
     async (forbid?: boolean) => {
       // version preview / debug mode, not save
-      if (isShowVersionHistories || forbid) return;
+      if (!isV2Workflow || isShowVersionHistories || forbid) return;
 
       const { nodes } = await getWorkflowStore();
 
@@ -175,10 +180,10 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
           null,
           2
         ),
-        t('app.Export Config Successful')
+        appT('Export Config Successful')
       );
     }
-  }, [copyData, flowData2StoreDataAndCheck, t]);
+  }, [appT, copyData, flowData2StoreDataAndCheck]);
 
   // effect
   useBeforeunload({
@@ -219,7 +224,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
             <Box fontSize={['md', 'lg']} fontWeight={'bold'}>
               {app.name}
             </Box>
-            {!isShowVersionHistories && (
+            {!isShowVersionHistories && isV2Workflow && (
               <MyTooltip label={t('core.app.Onclick to save')}>
                 <Box
                   fontSize={'sm'}
@@ -252,12 +257,12 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
                 }
                 menuList={[
                   {
-                    label: t('app.Import Configs'),
+                    label: appT('Import Configs'),
                     icon: 'common/importLight',
                     onClick: onOpenImport
                   },
                   {
-                    label: t('app.Export Configs'),
+                    label: appT('Export Configs'),
                     icon: 'export',
                     onClick: onExportWorkflow
                   }
@@ -306,22 +311,24 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
       </>
     );
   }, [
-    ConfirmModal,
-    app.name,
-    flowData2StoreDataAndCheck,
+    theme.borders.base,
     isSaving,
-    onExportWorkflow,
-    onOpenImport,
-    onclickPublish,
-    onclickSave,
-    openConfigPublish,
-    isShowVersionHistories,
     saveAndBack,
-    saveLabel,
-    setIsShowVersionHistories,
-    setWorkflowTestData,
+    app.name,
+    isShowVersionHistories,
+    isV2Workflow,
     t,
-    theme.borders.base
+    saveLabel,
+    appT,
+    onOpenImport,
+    onExportWorkflow,
+    openConfigPublish,
+    onclickPublish,
+    ConfirmModal,
+    onclickSave,
+    setIsShowVersionHistories,
+    flowData2StoreDataAndCheck,
+    setWorkflowTestData
   ]);
 
   return (
@@ -341,6 +348,11 @@ const Header = (props: Props) => {
     nodes: StoreNodeItemType[];
     edges: StoreEdgeItemType[];
   }>();
+  const { isOpen: isOpenTest, onOpen: onOpenTest, onClose: onCloseTest } = useDisclosure();
+
+  useUpdateEffect(() => {
+    onOpenTest();
+  }, [workflowTestData]);
 
   return (
     <>
@@ -351,9 +363,10 @@ const Header = (props: Props) => {
       />
       <ChatTest
         ref={ChatTestRef}
+        isOpen={isOpenTest}
         {...workflowTestData}
         app={app}
-        onClose={() => setWorkflowTestData(undefined)}
+        onClose={onCloseTest}
       />
     </>
   );
