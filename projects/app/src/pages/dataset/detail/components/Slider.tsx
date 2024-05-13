@@ -41,6 +41,7 @@ const Slider = ({ currentTab }: { currentTab: TabEnum }) => {
   const { isPc, setLoading } = useSystemStore();
   const vectorTrainingMap = useContextSelector(DatasetPageContext, (v) => v.vectorTrainingMap);
   const agentTrainingMap = useContextSelector(DatasetPageContext, (v) => v.agentTrainingMap);
+  const fileQueueMap = useContextSelector(DatasetPageContext, (v) => v.fileQueueMap);
   const rebuildingCount = useContextSelector(DatasetPageContext, (v) => v.rebuildingCount);
 
   const tabList = [
@@ -144,10 +145,24 @@ const Slider = ({ currentTab }: { currentTab: TabEnum }) => {
             )}
             <Box mb={3}>
               <Box fontSize={'sm'}>
-                {t('core.dataset.training.Agent queue')}({agentTrainingMap.tip})
+                {t('core.dataset.training.File queue')}({fileQueueMap.trainingCount})
               </Box>
               <Progress
-                value={100}
+                value={fileQueueMap.trainingPercentage}
+                size={'xs'}
+                colorScheme={fileQueueMap.colorSchema}
+                borderRadius={'10px'}
+                isAnimated
+                hasStripe
+              />
+            </Box>
+
+            <Box mb={3}>
+              <Box fontSize={'sm'}>
+                {t('core.dataset.training.Agent queue')}({agentTrainingMap.trainingCount})
+              </Box>
+              <Progress
+                value={agentTrainingMap.trainingPercentage}
                 size={'xs'}
                 colorScheme={agentTrainingMap.colorSchema}
                 borderRadius={'10px'}
@@ -155,12 +170,13 @@ const Slider = ({ currentTab }: { currentTab: TabEnum }) => {
                 hasStripe
               />
             </Box>
+
             <Box mb={3}>
               <Box fontSize={'sm'}>
-                {t('core.dataset.training.Vector queue')}({vectorTrainingMap.tip})
+                {t('core.dataset.training.Vector queue')}({vectorTrainingMap.trainingCount})
               </Box>
               <Progress
-                value={100}
+                value={vectorTrainingMap.trainingPercentage}
                 size={'xs'}
                 colorScheme={vectorTrainingMap.colorSchema}
                 borderRadius={'10px'}
