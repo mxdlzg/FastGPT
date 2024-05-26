@@ -79,7 +79,7 @@ const OutLink = () => {
       const prompts = messages.slice(-2);
       const completionChatId = chatId ? chatId : nanoid();
 
-      const { responseText, responseData, newVariables } = await streamFetch({
+      const { responseText, responseData } = await streamFetch({
         data: {
           messages: prompts,
           variables: {
@@ -135,9 +135,20 @@ const OutLink = () => {
         history: ChatBoxRef.current?.getChatHistories() || state.history
       }));
 
-      return { responseText, responseData, isNewChat: forbidRefresh.current, newVariables };
+      return { responseText, responseData, isNewChat: forbidRefresh.current };
     },
-    [appId, teamToken, chatId, histories, pushHistory, router, setChatData, teamId, updateHistory]
+    [
+      chatId,
+      customVariables,
+      appId,
+      teamId,
+      teamToken,
+      setChatData,
+      pushHistory,
+      router,
+      histories,
+      updateHistory
+    ]
   );
 
   /* replace router query to last chat */
@@ -358,7 +369,7 @@ const OutLink = () => {
                 ref={ChatBoxRef}
                 appAvatar={chatData.app.avatar}
                 userAvatar={chatData.userAvatar}
-                userGuideModule={chatData.app?.userGuideModule}
+                chatConfig={chatData.app?.chatConfig}
                 showFileSelector={checkChatSupportSelectFileByChatModels(chatData.app.chatModels)}
                 feedbackType={'user'}
                 onUpdateVariable={(e) => {}}

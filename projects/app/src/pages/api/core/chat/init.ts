@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { jsonRes } from '@fastgpt/service/common/response';
 import { authApp } from '@fastgpt/service/support/permission/auth/app';
-import { getGuideModule, replaceAppChatConfig } from '@fastgpt/global/core/workflow/utils';
+import { getGuideModule, getAppChatConfig } from '@fastgpt/global/core/workflow/utils';
 import { getChatModelNameListByModules } from '@/service/core/app/workflow';
 import type { InitChatProps, InitChatResponse } from '@/global/core/chat/api.d';
 import { MongoChat } from '@fastgpt/service/core/chat/chatSchema';
@@ -9,7 +9,7 @@ import { getChatItems } from '@fastgpt/service/core/chat/controller';
 import { ChatErrEnum } from '@fastgpt/global/common/error/code/chat';
 import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import { getAppLatestVersion } from '@fastgpt/service/core/app/controller';
-import { NextAPI } from '@/service/middle/entry';
+import { NextAPI } from '@/service/middleware/entry';
 
 async function handler(
   req: NextApiRequest,
@@ -61,10 +61,12 @@ async function handler(
     variables: chat?.variables || {},
     history,
     app: {
-      userGuideModule: replaceAppChatConfig({
-        node: getGuideModule(nodes),
-        variableList: chat?.variableList,
-        welcomeText: chat?.welcomeText
+      chatConfig: getAppChatConfig({
+        chatConfig: app.chatConfig,
+        systemConfigNode: getGuideModule(nodes),
+        storeVariables: chat?.variableList,
+        storeWelcomeText: chat?.welcomeText,
+        isPublicFetch: false
       }),
       chatModels: getChatModelNameListByModules(nodes),
       name: app.name,

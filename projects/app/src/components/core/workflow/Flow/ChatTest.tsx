@@ -16,16 +16,21 @@ import MyTooltip from '@/components/MyTooltip';
 import { useUserStore } from '@/web/support/user/useUserStore';
 import ChatBox from '@/components/ChatBox';
 import type { ComponentRef, StartChatFnProps } from '@/components/ChatBox/type.d';
-import { getGuideModule } from '@fastgpt/global/core/workflow/utils';
-import { checkChatSupportSelectFileByModules } from '@/web/core/chat/utils';
+import {
+  checkChatSupportSelectFileByModules,
+  getAppQuestionGuidesByModules
+} from '@/web/core/chat/utils';
 import { NodeInputKeyEnum } from '@fastgpt/global/core/workflow/constants';
 import { useTranslation } from 'next-i18next';
 import { StoreEdgeItemType } from '@fastgpt/global/core/workflow/type/edge';
 import {
   getDefaultEntryNodeIds,
+  getMaxHistoryLimitFromNodes,
   initWorkflowEdgeStatus,
   storeNodes2RuntimeNodes
 } from '@fastgpt/global/core/workflow/runtime/utils';
+import { useContextSelector } from 'use-context-selector';
+import { AppContext } from '@/web/core/app/context/appContext';
 
 export type ChatTestComponentRef = {
   resetChatTest: () => void;
@@ -33,13 +38,11 @@ export type ChatTestComponentRef = {
 
 const ChatTest = (
   {
-    app,
     isOpen,
     nodes = [],
     edges = [],
     onClose
   }: {
-    app: AppSchema;
     isOpen: boolean;
     nodes?: StoreNodeItemType[];
     edges?: StoreEdgeItemType[];
@@ -50,26 +53,16 @@ const ChatTest = (
   const { t } = useTranslation();
   const ChatBoxRef = useRef<ComponentRef>(null);
   const { userInfo } = useUserStore();
+  const { appDetail } = useContextSelector(AppContext, (v) => v);
 
   const startChat = useCallback(
     async ({ chatList, controller, generatingMessage, variables }: StartChatFnProps) => {
       /* get histories */
-      let historyMaxLen = 6;
-      nodes.forEach((node) => {
-        node.inputs.forEach((input) => {
-          if (
-            (input.key === NodeInputKeyEnum.history ||
-              input.key === NodeInputKeyEnum.historyMaxAmount) &&
-            typeof input.value === 'number'
-          ) {
-            historyMaxLen = Math.max(historyMaxLen, input.value);
-          }
-        });
-      });
-      const history = chatList.slice(-(historyMaxLen * 2) - 2, -2);
+      let historyMaxLen = getMaxHistoryLimitFromNodes(nodes);
+      const history = chatList.slice(-historyMaxLen - 2, -2);
 
       // 流请求，获取数据
-      const { responseText, responseData, newVariables } = await streamFetch({
+      const { responseText, responseData } = await streamFetch({
         url: '/api/core/chat/chatTest',
         data: {
           history,
@@ -77,17 +70,17 @@ const ChatTest = (
           nodes: storeNodes2RuntimeNodes(nodes, getDefaultEntryNodeIds(nodes)),
           edges: initWorkflowEdgeStatus(edges),
           variables,
-          appId: app._id,
-          appName: `调试-${app.name}`,
+          appId: appDetail._id,
+          appName: `调试-${appDetail.name}`,
           mode: 'test'
         },
         onMessage: generatingMessage,
         abortCtrl: controller
       });
 
-      return { responseText, responseData, newVariables };
+      return { responseText, responseData };
     },
-    [app._id, app.name, edges, nodes]
+    [appDetail._id, appDetail.name, edges, nodes]
   );
 
   useImperativeHandle(ref, () => ({
@@ -146,11 +139,11 @@ const ChatTest = (
         <Box flex={1}>
           <ChatBox
             ref={ChatBoxRef}
-            appId={app._id}
-            appAvatar={app.avatar}
+            appId={appDetail._id}
+            appAvatar={appDetail.avatar}
             userAvatar={userInfo?.avatar}
             showMarkIcon
-            userGuideModule={getGuideModule(nodes)}
+            chatConfig={appDetail.chatConfig}
             showFileSelector={checkChatSupportSelectFileByModules(nodes)}
             onStartChat={startChat}
             onDelMessage={() => {}}

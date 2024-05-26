@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react';
 import { checkWorkflowNodeAndConnection } from '@/web/core/workflow/utils';
 import { useTranslation } from 'next-i18next';
 import { useToast } from '@fastgpt/web/hooks/useToast';
-import { flowNode2StoreNodes } from '../../utils';
+import { uiWorkflow2StoreWorkflow } from '../../utils';
 import { RuntimeNodeItemType } from '@fastgpt/global/core/workflow/runtime/type';
 
 import dynamic from 'next/dynamic';
@@ -26,6 +26,8 @@ import { WorkflowIOValueTypeEnum } from '@fastgpt/global/core/workflow/constants
 import { checkInputIsReference } from '@fastgpt/global/core/workflow/utils';
 import { useContextSelector } from 'use-context-selector';
 import { WorkflowContext, getWorkflowStore } from '../../context';
+import QuestionTip from '@fastgpt/web/components/common/MyTooltip/QuestionTip';
+import { FlowNodeTypeEnum } from '@fastgpt/global/core/workflow/node/constant';
 
 const MyRightDrawer = dynamic(
   () => import('@fastgpt/web/components/common/MyDrawer/MyRightDrawer')
@@ -50,7 +52,7 @@ export const useDebug = () => {
 
     const checkResults = checkWorkflowNodeAndConnection({ nodes, edges });
     if (!checkResults) {
-      const storeNodes = flowNode2StoreNodes({ nodes, edges });
+      const storeNodes = uiWorkflow2StoreWorkflow({ nodes, edges });
 
       return JSON.stringify(storeNodes);
     } else {
@@ -109,15 +111,23 @@ export const useDebug = () => {
     const runtimeNode = runtimeNodes.find((node) => node.nodeId === runtimeNodeId);
 
     if (!runtimeNode) return <></>;
-    const referenceInputs = runtimeNode.inputs.filter((input) => {
+    const renderInputs = runtimeNode.inputs.filter((input) => {
+      if (runtimeNode.flowNodeType === FlowNodeTypeEnum.pluginInput) return true;
       if (checkInputIsReference(input)) return true;
       if (input.required && !input.value) return true;
     });
 
     const { register, getValues, setValue, handleSubmit } = useForm<Record<string, any>>({
-      defaultValues: referenceInputs.reduce((acc, input) => {
-        //@ts-ignore
-        acc[input.key] = undefined;
+      defaultValues: renderInputs.reduce((acc: Record<string, any>, input) => {
+        const isReference = checkInputIsReference(input);
+        if (isReference) {
+          acc[input.key] = undefined;
+        } else if (typeof input.value === 'object') {
+          acc[input.key] = JSON.stringify(input.value, null, 2);
+        } else {
+          acc[input.key] = input.value;
+        }
+
         return acc;
       }, {})
     });
@@ -153,78 +163,84 @@ export const useDebug = () => {
         iconSrc="core/workflow/debugBlue"
         title={t('core.workflow.Debug Node')}
         maxW={['90vw', '35vw']}
+        px={0}
       >
-        <Flex flexDirection={'column'} h={'100%'}>
-          <Box flex={'1 0 0'} overflow={'auto'}>
-            {referenceInputs.map((input) => {
-              const required = input.required || false;
-              return (
-                <Box key={input.key} _notLast={{ mb: 4 }} px={1}>
-                  <Box display={'inline-block'} position={'relative'} mb={1}>
+        <Box flex={'1 0 0'} overflow={'auto'} px={6}>
+          {renderInputs.map((input) => {
+            const required = input.required || false;
+            console.log(input.valueType);
+            const RenderInput = (() => {
+              if (input.valueType === WorkflowIOValueTypeEnum.string) {
+                return (
+                  <Textarea
+                    {...register(input.key, {
+                      required
+                    })}
+                    placeholder={t(input.placeholder || '')}
+                    bg={'myGray.50'}
+                  />
+                );
+              }
+              if (input.valueType === WorkflowIOValueTypeEnum.number) {
+                return (
+                  <NumberInput step={input.step} min={input.min} max={input.max} bg={'myGray.50'}>
+                    <NumberInputField
+                      {...register(input.key, {
+                        required: input.required,
+                        min: input.min,
+                        max: input.max,
+                        valueAsNumber: true
+                      })}
+                    />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                );
+              }
+              if (input.valueType === WorkflowIOValueTypeEnum.boolean) {
+                return (
+                  <Box>
+                    <Switch size={'lg'} {...register(input.key)} />
+                  </Box>
+                );
+              }
+              if (typeof input.value === 'string') {
+                return (
+                  <JsonEditor
+                    bg={'myGray.50'}
+                    placeholder={t(input.placeholder || '')}
+                    resize
+                    value={getValues(input.key)}
+                    onChange={(e) => {
+                      setValue(input.key, e);
+                    }}
+                  />
+                );
+              }
+            })();
+
+            return !!RenderInput ? (
+              <Box key={input.key} _notLast={{ mb: 4 }} px={1}>
+                <Flex alignItems={'center'} mb={1}>
+                  <Box position={'relative'}>
                     {required && (
-                      <Box position={'absolute'} right={-2} top={-1} color={'red.600'}>
+                      <Box position={'absolute'} right={-2} top={'-1px'} color={'red.600'}>
                         *
                       </Box>
                     )}
                     {t(input.debugLabel || input.label)}
                   </Box>
-                  {(() => {
-                    if (input.valueType === WorkflowIOValueTypeEnum.string) {
-                      return (
-                        <Textarea
-                          {...register(input.key, {
-                            required
-                          })}
-                          placeholder={t(input.placeholder || '')}
-                          bg={'myGray.50'}
-                        />
-                      );
-                    }
-                    if (input.valueType === WorkflowIOValueTypeEnum.number) {
-                      return (
-                        <NumberInput
-                          step={input.step}
-                          min={input.min}
-                          max={input.max}
-                          bg={'myGray.50'}
-                        >
-                          <NumberInputField
-                            {...register(input.key, {
-                              required: input.required,
-                              min: input.min,
-                              max: input.max,
-                              valueAsNumber: true
-                            })}
-                          />
-                          <NumberInputStepper>
-                            <NumberIncrementStepper />
-                            <NumberDecrementStepper />
-                          </NumberInputStepper>
-                        </NumberInput>
-                      );
-                    }
-                    if (input.valueType === WorkflowIOValueTypeEnum.boolean) {
-                      return <Switch size={'lg'} {...register(input.key)} />;
-                    }
-                    return (
-                      <JsonEditor
-                        bg={'myGray.50'}
-                        placeholder={t(input.placeholder || '')}
-                        resize
-                        value={getValues(input.key)}
-                        onChange={(e) => {
-                          setValue(input.key, e);
-                        }}
-                      />
-                    );
-                  })()}
-                </Box>
-              );
-            })}
-          </Box>
-          <Flex py={2} justifyContent={'flex-end'}>
-            <Button onClick={handleSubmit(onclickRun)}>运行</Button>
-          </Flex>
+                  {input.description && <QuestionTip ml={2} label={input.description} />}
+                </Flex>
+                {RenderInput}
+              </Box>
+            ) : null;
+          })}
+        </Box>
+        <Flex py={2} justifyContent={'flex-end'} px={6}>
+          <Button onClick={handleSubmit(onclickRun)}>运行</Button>
         </Flex>
       </MyRightDrawer>
     );

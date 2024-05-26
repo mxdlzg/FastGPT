@@ -1,4 +1,4 @@
-import {readFileContentFromMongo} from "@fastgpt/service/common/file/gridfs/controller";
+import {readFileContentFromMongo, uploadFile} from "@fastgpt/service/common/file/gridfs/controller";
 import {BucketNameEnum} from "@fastgpt/global/common/file/constants";
 import {splitText2Chunks} from "@fastgpt/global/common/string/textSplitter";
 import {TrainingModeEnum} from "@fastgpt/global/core/dataset/constants";
@@ -13,39 +13,73 @@ import {addLog} from "@fastgpt/service/common/system/log";
 import {startTrainingQueue} from "@/service/core/dataset/training/utils";
 import {DatasetSchemaType} from "@fastgpt/global/core/dataset/type";
 import {mongoSessionRun} from "@fastgpt/service/common/mongo/sessionRun";
-import {hashStr} from "@fastgpt/global/common/string/tools";
+import {getNanoid, hashStr} from "@fastgpt/global/common/string/tools";
 import {MongoDatasetCollection} from "@fastgpt/service/core/dataset/collection/schema";
+import {removeFilesByPaths} from "@fastgpt/service/common/file/utils";
+import {readRawTextByLocalFile} from "@fastgpt/service/common/file/read/utils";
+import {FileType} from "@fastgpt/service/common/file/multer"
+import metadata from "next/dist/server/typescript/rules/metadata";
+import {FileCreateDatasetCollectionParams} from "@fastgpt/global/core/dataset/api";
+import {fi} from "date-fns/locale";
 
 export const generateFileChunk = async ({
                                             teamId,
                                             tmbId,
-                                            fileId,
                                             dataset,
                                             chunkSize,
                                             trainingType,
                                             chunkSplitter,
                                             collectionId,
-                                            qaPrompt
+                                            qaPrompt,
+    file,
+    bucketName,
+    data
                                         }: {
     teamId: string;
     tmbId: string;
-    fileId: string;
     dataset: DatasetSchemaType;
     chunkSize: number;
-    trainingType: `${TrainingModeEnum}`;
+    trainingType: TrainingModeEnum;
     chunkSplitter: string | undefined;
     collectionId: string;
     qaPrompt: string | undefined;
+    file: FileType,
+    bucketName: `${BucketNameEnum}`,
+    data: FileCreateDatasetCollectionParams
 }) => {
+    let filePaths = [file.path];
+
     try {
-        addLog.info(`${fileId} | generateFileChunk START.`)
+        addLog.info(`${file.originalname} | generateFileChunk START.`)
+
+        const { fileMetadata, collectionMetadata, ...collectionData } = data;
+        const collectionName = file.originalname;
+
+        const relatedImgId = getNanoid();
+
         // 1. read file
-        const {rawText, filename} = await readFileContentFromMongo({
+        const { rawText } = await readRawTextByLocalFile({
             teamId,
-            bucketName: BucketNameEnum.dataset,
-            fileId
+            path: file.path,
+            metadata: {
+                ...fileMetadata,
+                relatedId: relatedImgId
+            }
         });
-        addLog.info(`${filename} | readFileContentFromMongo End.`)
+
+        // 2. upload file
+        const fileId = await uploadFile({
+            teamId,
+            tmbId,
+            bucketName,
+            path: file.path,
+            filename: file.originalname,
+            contentType: file.mimetype,
+            metadata: fileMetadata
+        });
+
+        // 3. delete tmp file
+        removeFilesByPaths(filePaths);
 
         // 2. split chunks
         const {chunks} = splitText2Chunks({
@@ -54,7 +88,7 @@ export const generateFileChunk = async ({
             overlapRatio: trainingType === TrainingModeEnum.chunk ? 0.2 : 0,
             customReg: chunkSplitter ? [chunkSplitter] : []
         });
-        addLog.info(`${filename} | splitText2Chunks End.`)
+        addLog.info(`${file.originalname} | splitText2Chunks End.`)
 
 
         // 3. auth limit
@@ -67,27 +101,28 @@ export const generateFileChunk = async ({
             //4. update collection hashRawText and rawTextLength
             const updateFields: Record<string, any> = {
                 "hashRawText": hashStr(rawText),
+                "fileId": fileId,
                 "rawTextLength": rawText.length,
             };
             await MongoDatasetCollection.findByIdAndUpdate(collectionId, {
                 $set: updateFields
             },session);
-            addLog.info(`${filename} | putDatasetCollectionById End.`)
+            addLog.info(`${file.originalname} | putDatasetCollectionById End.`)
 
             // 5. create training bill
             const {billId} = await createTrainingUsage({
                 teamId,
                 tmbId,
-                appName: filename,
+                appName: collectionName,
                 billSource: UsageSourceEnum.training,
                 vectorModel: getVectorModel(dataset.vectorModel)?.name,
                 agentModel: getLLMModel(dataset.agentModel)?.name,
                 session
             });
-            addLog.info(`${filename} | createTrainingUsage End.`)
+            addLog.info(`${file.originalname} | createTrainingUsage End.`)
 
             // 6. insert to training queue
-            await pushDataListToTrainingQueue({
+            const insertResults = await pushDataListToTrainingQueue({
                 teamId,
                 tmbId,
                 datasetId: dataset._id,
@@ -103,13 +138,13 @@ export const generateFileChunk = async ({
                 })),
                 session
             });
-            addLog.info(`${filename} | pushDataListToTrainingQueue End.`)
+            addLog.info(`${file.originalname} | pushDataListToTrainingQueue End.`)
 
             // 7. remove related image ttl
             await MongoImage.updateMany(
                 {
                     teamId,
-                    'metadata.relatedId': fileId
+                    'metadata.relatedId': relatedImgId
                 },
                 {
                     // Remove expiredTime to avoid ttl expiration
@@ -121,12 +156,13 @@ export const generateFileChunk = async ({
                     session
                 }
             );
-            addLog.info(`${filename} | mongoSessionRun End.`)
+            addLog.info(`${file.originalname} | mongoSessionRun End.`)
         });
 
-        addLog.info(`${filename} | startTrainingQueue.`)
+        addLog.info(`${file.originalname} | startTrainingQueue.`)
         startTrainingQueue(true);
     } catch (error) {
-        addLog.error(`Async task: Load file ${fileId} content error!`, {error});
+        removeFilesByPaths(filePaths);
+        addLog.error(`Async task: Load file ${file} content error!`, {error});
     }
 }

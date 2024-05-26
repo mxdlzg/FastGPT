@@ -19,14 +19,19 @@ import { NodeInputKeyEnum, NodeOutputKeyEnum } from '@fastgpt/global/core/workfl
 import { EditorVariablePickerType } from '@fastgpt/web/components/common/Textarea/PromptEditor/type';
 import {
   formatEditorVariablePickerIcon,
-  getGuideModule,
-  splitGuideModule
+  getAppChatConfig,
+  getGuideModule
 } from '@fastgpt/global/core/workflow/utils';
 import { getSystemVariables } from '../app/utils';
 import { TFunction } from 'next-i18next';
-import { ReferenceValueProps } from '@fastgpt/global/core/workflow/type/io';
+import {
+  FlowNodeInputItemType,
+  FlowNodeOutputItemType,
+  ReferenceValueProps
+} from '@fastgpt/global/core/workflow/type/io';
 import { IfElseListItemType } from '@fastgpt/global/core/workflow/template/system/ifElse/type';
 import { VariableConditionEnum } from '@fastgpt/global/core/workflow/template/system/ifElse/constant';
+import { AppChatConfigType } from '@fastgpt/global/core/app/type';
 
 export const nodeTemplate2FlowNode = ({
   template,
@@ -87,7 +92,8 @@ export const storeNode2FlowNode = ({
         ...templateOutput,
         value: storeOutput.value
       };
-    })
+    }),
+    version: storeNode.version || '481'
   };
 
   return {
@@ -109,11 +115,13 @@ export const computedNodeInputReference = ({
   nodeId,
   nodes,
   edges,
+  chatConfig,
   t
 }: {
   nodeId: string;
   nodes: FlowNodeItemType[];
   edges: Edge[];
+  chatConfig: AppChatConfigType;
   t: TFunction;
 }) => {
   // get current node
@@ -139,29 +147,55 @@ export const computedNodeInputReference = ({
   };
   findSourceNode(nodeId);
 
-  sourceNodes.unshift(getGlobalVariableNode(nodes, t));
+  sourceNodes.unshift(
+    getGlobalVariableNode({
+      nodes,
+      t,
+      chatConfig
+    })
+  );
 
   return sourceNodes;
 };
-export const getReferenceDataValueType = ({
+export const getRefData = ({
   variable,
   nodeList,
+  chatConfig,
   t
 }: {
   variable?: ReferenceValueProps;
   nodeList: FlowNodeItemType[];
+  chatConfig: AppChatConfigType;
   t: TFunction;
 }) => {
-  if (!variable) return WorkflowIOValueTypeEnum.any;
+  if (!variable)
+    return {
+      valueType: WorkflowIOValueTypeEnum.any,
+      required: false
+    };
 
   const node = nodeList.find((node) => node.nodeId === variable[0]);
-  const systemVariables = getWorkflowGlobalVariables(nodeList, t);
+  const systemVariables = getWorkflowGlobalVariables({ nodes: nodeList, chatConfig, t });
 
-  if (!node) return systemVariables.find((item) => item.key === variable?.[1])?.valueType;
+  if (!node) {
+    const globalVariable = systemVariables.find((item) => item.key === variable?.[1]);
+    return {
+      valueType: globalVariable?.valueType || WorkflowIOValueTypeEnum.any,
+      required: !!globalVariable?.required
+    };
+  }
 
   const output = node.outputs.find((item) => item.id === variable[1]);
-  if (!output) return WorkflowIOValueTypeEnum.any;
-  return output.valueType;
+  if (!output)
+    return {
+      valueType: WorkflowIOValueTypeEnum.any,
+      required: false
+    };
+
+  return {
+    valueType: output.valueType,
+    required: !!output.required
+  };
 };
 
 /* Connection rules */
@@ -283,12 +317,21 @@ export const filterSensitiveNodesData = (nodes: StoreNodeItemType[]) => {
 };
 
 /* get workflowStart output to global variables */
-export const getWorkflowGlobalVariables = (
-  nodes: FlowNodeItemType[],
-  t: TFunction
-): EditorVariablePickerType[] => {
+export const getWorkflowGlobalVariables = ({
+  nodes,
+  chatConfig,
+  t
+}: {
+  nodes: FlowNodeItemType[];
+  chatConfig: AppChatConfigType;
+  t: TFunction;
+}): EditorVariablePickerType[] => {
   const globalVariables = formatEditorVariablePickerIcon(
-    splitGuideModule(getGuideModule(nodes))?.variableNodes || []
+    getAppChatConfig({
+      chatConfig,
+      systemConfigNode: getGuideModule(nodes),
+      isPublicFetch: true
+    })?.variables || []
   ).map((item) => ({
     ...item,
     valueType: WorkflowIOValueTypeEnum.any
@@ -297,4 +340,40 @@ export const getWorkflowGlobalVariables = (
   const systemVariables = getSystemVariables(t);
 
   return [...globalVariables, ...systemVariables];
+};
+
+export type CombinedItemType = Partial<FlowNodeInputItemType> & Partial<FlowNodeOutputItemType>;
+
+export const updateFlowNodeVersion = (
+  node: FlowNodeItemType,
+  template: FlowNodeTemplateType
+): FlowNodeItemType => {
+  function updateArrayBasedOnTemplate<T extends FlowNodeInputItemType | FlowNodeOutputItemType>(
+    nodeArray: T[],
+    templateArray: T[]
+  ): T[] {
+    return templateArray.map((templateItem) => {
+      const nodeItem = nodeArray.find((item) => item.key === templateItem.key);
+      if (nodeItem) {
+        return { ...templateItem, ...nodeItem } as T;
+      }
+      return { ...templateItem };
+    });
+  }
+
+  const updatedNode: FlowNodeItemType = {
+    ...node,
+    ...template,
+    name: node.name,
+    intro: node.intro
+  };
+
+  if (node.inputs && template.inputs) {
+    updatedNode.inputs = updateArrayBasedOnTemplate(node.inputs, template.inputs);
+  }
+  if (node.outputs && template.outputs) {
+    updatedNode.outputs = updateArrayBasedOnTemplate(node.outputs, template.outputs);
+  }
+
+  return updatedNode;
 };

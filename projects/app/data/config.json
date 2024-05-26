@@ -6,7 +6,8 @@
     "openapiPrefix": "fastgpt",
     "vectorMaxProcess": 15,
     "qaMaxProcess": 15,
-    "pgHNSWEfSearch": 100
+    "pgHNSWEfSearch": 100,
+    "tokenWorkers": 20
   },
   "llmModels": [
     {
@@ -82,7 +83,7 @@
   "vectorModels": [
     {
       "model": "text-embedding-3-large",
-      "name": "Embedding-2",
+      "name": "Embedding-3-large",
       "avatar": "/imgs/model/openai.svg",
       "charsPointsPrice": 0,
       "defaultToken": 512,
@@ -96,7 +97,7 @@
     },
     {
       "model": "text-embedding-3-small",
-      "name": "Embedding-2",
+      "name": "Embedding-3-small",
       "avatar": "/imgs/model/openai.svg",
       "charsPointsPrice": 0,
       "defaultToken": 512,
@@ -107,7 +108,7 @@
     },
     {
       "model": "text-embedding-ada-002",
-      "name": "Embedding-2",
+      "name": "text-embedding-ada-002",
       "avatar": "/imgs/model/openai.svg",
       "charsPointsPrice": 0,
       "defaultToken": 512,

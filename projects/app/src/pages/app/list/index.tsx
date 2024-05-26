@@ -16,8 +16,10 @@ import { useAppStore } from '@/web/core/app/store/useAppStore';
 import PermissionIconText from '@/components/support/permission/IconText';
 import { useUserStore } from '@/web/support/user/useUserStore';
 import { useI18n } from '@/web/context/I18n';
+import { useTranslation } from 'next-i18next';
 
 const MyApps = () => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { appT, commonT } = useI18n();
 
@@ -43,19 +45,19 @@ const MyApps = () => {
           title: '删除成功',
           status: 'success'
         });
-        loadMyApps(true);
+        loadMyApps();
       } catch (err: any) {
         toast({
-          title: err?.message || '删除失败',
+          title: err?.message || t('common.Delete Failed'),
           status: 'error'
         });
       }
     },
-    [toast, loadMyApps]
+    [toast, loadMyApps, t]
   );
 
   /* 加载模型 */
-  const { isFetching } = useQuery(['loadApps'], () => loadMyApps(true), {
+  const { isFetching } = useQuery(['loadApps'], () => loadMyApps(), {
     refetchOnMount: true
   });
 
@@ -180,7 +182,7 @@ const MyApps = () => {
       )}
       <ConfirmModal />
       {isOpenCreateModal && (
-        <CreateModal onClose={onCloseCreateModal} onSuccess={() => loadMyApps(true)} />
+        <CreateModal onClose={onCloseCreateModal} onSuccess={() => loadMyApps()} />
       )}
     </PageContainer>
   );

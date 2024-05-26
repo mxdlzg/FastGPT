@@ -25,6 +25,7 @@ export const HttpModule468: FlowNodeTemplateType = {
   intro: '可以发出一个 HTTP 请求，实现更为复杂的操作（联网搜索、数据库查询等）',
   showStatus: true,
   isTool: true,
+  version: '481',
   inputs: [
     {
       ...Input_Template_DynamicInput,
@@ -81,9 +82,18 @@ export const HttpModule468: FlowNodeTemplateType = {
   outputs: [
     Output_Template_AddOutput,
     {
+      id: NodeOutputKeyEnum.error,
+      key: NodeOutputKeyEnum.error,
+      label: '请求错误',
+      description: 'HTTP请求错误信息，成功时返回空',
+      valueType: WorkflowIOValueTypeEnum.object,
+      type: FlowNodeOutputTypeEnum.static
+    },
+    {
       id: NodeOutputKeyEnum.httpRawResponse,
       key: NodeOutputKeyEnum.httpRawResponse,
       label: '原始响应',
+      required: true,
       description: 'HTTP请求的原始响应。只能接受字符串或JSON类型响应数据。',
       valueType: WorkflowIOValueTypeEnum.any,
       type: FlowNodeOutputTypeEnum.static

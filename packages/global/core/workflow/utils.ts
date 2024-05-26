@@ -1,4 +1,4 @@
-import { FlowNodeOutputTypeEnum, FlowNodeTypeEnum } from './node/constant';
+import { FlowNodeInputTypeEnum, FlowNodeOutputTypeEnum, FlowNodeTypeEnum } from './node/constant';
 import {
   WorkflowIOValueTypeEnum,
   NodeInputKeyEnum,
@@ -11,10 +11,16 @@ import type {
   VariableItemType,
   AppTTSConfigType,
   AppWhisperConfigType,
-  AppScheduledTriggerConfigType
+  AppScheduledTriggerConfigType,
+  ChatInputGuideConfigType,
+  AppChatConfigType
 } from '../app/type';
 import { EditorVariablePickerType } from '../../../web/components/common/Textarea/PromptEditor/type';
-import { defaultWhisperConfig } from '../app/constants';
+import {
+  defaultChatInputGuideConfig,
+  defaultTTSConfig,
+  defaultWhisperConfig
+} from '../app/constants';
 import { IfElseResultEnum } from './template/system/ifElse/constant';
 
 export const getHandleId = (nodeId: string, type: 'source' | 'target', key: string) => {
@@ -22,15 +28,9 @@ export const getHandleId = (nodeId: string, type: 'source' | 'target', key: stri
 };
 
 export const checkInputIsReference = (input: FlowNodeInputItemType) => {
-  const value = input.value;
-  if (
-    Array.isArray(value) &&
-    value.length === 2 &&
-    typeof value[0] === 'string' &&
-    typeof value[1] === 'string'
-  ) {
+  if (input.renderTypeList?.[input?.selectedTypeIndex || 0] === FlowNodeInputTypeEnum.reference)
     return true;
-  }
+
   return false;
 };
 
@@ -46,63 +46,78 @@ export const splitGuideModule = (guideModules?: StoreNodeItemType) => {
   const welcomeText: string =
     guideModules?.inputs?.find((item) => item.key === NodeInputKeyEnum.welcomeText)?.value || '';
 
-  const variableNodes: VariableItemType[] =
+  const variables: VariableItemType[] =
     guideModules?.inputs.find((item) => item.key === NodeInputKeyEnum.variables)?.value || [];
 
   const questionGuide: boolean =
     !!guideModules?.inputs?.find((item) => item.key === NodeInputKeyEnum.questionGuide)?.value ||
     false;
 
-  const ttsConfig: AppTTSConfigType = guideModules?.inputs?.find(
-    (item) => item.key === NodeInputKeyEnum.tts
-  )?.value || { type: 'web' };
+  const ttsConfig: AppTTSConfigType =
+    guideModules?.inputs?.find((item) => item.key === NodeInputKeyEnum.tts)?.value ||
+    defaultTTSConfig;
 
   const whisperConfig: AppWhisperConfigType =
     guideModules?.inputs?.find((item) => item.key === NodeInputKeyEnum.whisper)?.value ||
     defaultWhisperConfig;
 
-  const scheduledTriggerConfig: AppScheduledTriggerConfigType | null =
-    guideModules?.inputs?.find((item) => item.key === NodeInputKeyEnum.scheduleTrigger)?.value ??
-    null;
+  const scheduledTriggerConfig: AppScheduledTriggerConfigType = guideModules?.inputs?.find(
+    (item) => item.key === NodeInputKeyEnum.scheduleTrigger
+  )?.value;
+
+  const chatInputGuide: ChatInputGuideConfigType =
+    guideModules?.inputs?.find((item) => item.key === NodeInputKeyEnum.chatInputGuide)?.value ||
+    defaultChatInputGuideConfig;
 
   return {
     welcomeText,
-    variableNodes,
+    variables,
     questionGuide,
     ttsConfig,
     whisperConfig,
-    scheduledTriggerConfig
+    scheduledTriggerConfig,
+    chatInputGuide
   };
 };
-export const replaceAppChatConfig = ({
-  node,
-  variableList,
-  welcomeText
+export const getAppChatConfig = ({
+  chatConfig,
+  systemConfigNode,
+  storeVariables,
+  storeWelcomeText,
+  isPublicFetch = false
 }: {
-  node?: StoreNodeItemType;
-  variableList?: VariableItemType[];
-  welcomeText?: string;
-}): StoreNodeItemType | undefined => {
-  if (!node) return;
-  return {
-    ...node,
-    inputs: node.inputs.map((input) => {
-      if (input.key === NodeInputKeyEnum.variables && variableList) {
-        return {
-          ...input,
-          value: variableList
-        };
-      }
-      if (input.key === NodeInputKeyEnum.welcomeText && welcomeText) {
-        return {
-          ...input,
-          value: welcomeText
-        };
-      }
+  chatConfig?: AppChatConfigType;
+  systemConfigNode?: StoreNodeItemType;
+  storeVariables?: VariableItemType[];
+  storeWelcomeText?: string;
+  isPublicFetch: boolean;
+}): AppChatConfigType => {
+  const {
+    welcomeText,
+    variables,
+    questionGuide,
+    ttsConfig,
+    whisperConfig,
+    scheduledTriggerConfig,
+    chatInputGuide
+  } = splitGuideModule(systemConfigNode);
 
-      return input;
-    })
+  const config: AppChatConfigType = {
+    questionGuide,
+    ttsConfig,
+    whisperConfig,
+    scheduledTriggerConfig,
+    chatInputGuide,
+    ...chatConfig,
+    variables: storeVariables ?? chatConfig?.variables ?? variables,
+    welcomeText: storeWelcomeText ?? chatConfig?.welcomeText ?? welcomeText
   };
+
+  if (!isPublicFetch) {
+    config.scheduledTriggerConfig = undefined;
+  }
+
+  return config;
 };
 
 export const getOrInitModuleInputValue = (input: FlowNodeInputItemType) => {
@@ -160,7 +175,7 @@ export const pluginData2FlowNodeIO = (
 };
 
 export const formatEditorVariablePickerIcon = (
-  variables: { key: string; label: string; type?: `${VariableInputEnum}` }[]
+  variables: { key: string; label: string; type?: `${VariableInputEnum}`; required?: boolean }[]
 ): EditorVariablePickerType[] => {
   return variables.map((item) => ({
     ...item,

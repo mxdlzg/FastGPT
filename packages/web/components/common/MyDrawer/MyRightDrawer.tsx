@@ -67,7 +67,12 @@ const MyRightDrawer = ({
           <DrawerCloseButton position={'relative'} fontSize={'sm'} top={0} right={0} />
         </Flex>
 
-        <DrawerBody>
+        <DrawerBody
+          overflowY={props?.overflowY || 'auto'}
+          display={'flex'}
+          flexDirection={'column'}
+          px={props?.px ?? 4}
+        >
           {children}
           <Loading loading={isLoading} fixed={false} />
         </DrawerBody>

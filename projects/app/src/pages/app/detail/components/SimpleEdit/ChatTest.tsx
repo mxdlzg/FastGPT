@@ -4,7 +4,6 @@ import { useTranslation } from 'next-i18next';
 import React, { useCallback, useEffect, useRef } from 'react';
 import ChatBox from '@/components/ChatBox';
 import type { ComponentRef, StartChatFnProps } from '@/components/ChatBox/type.d';
-import { NodeInputKeyEnum } from '@fastgpt/global/core/workflow/constants';
 import { streamFetch } from '@/web/common/api/fetch';
 import MyTooltip from '@/components/MyTooltip';
 import MyIcon from '@fastgpt/web/components/common/Icon';
@@ -13,15 +12,17 @@ import { checkChatSupportSelectFileByModules } from '@/web/core/chat/utils';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
 import {
   getDefaultEntryNodeIds,
+  getMaxHistoryLimitFromNodes,
   initWorkflowEdgeStatus,
   storeNodes2RuntimeNodes
 } from '@fastgpt/global/core/workflow/runtime/utils';
-import { useCreation, useMemoizedFn, useSafeState } from 'ahooks';
+import { useMemoizedFn, useSafeState } from 'ahooks';
 import { UseFormReturn } from 'react-hook-form';
 import { AppSimpleEditFormType } from '@fastgpt/global/core/app/type';
-import { useAppStore } from '@/web/core/app/store/useAppStore';
 import { form2AppWorkflow } from '@/web/core/app/utils';
 import { useI18n } from '@/web/context/I18n';
+import { useContextSelector } from 'use-context-selector';
+import { AppContext } from '@/web/core/app/context/appContext';
 
 const ChatTest = ({
   editForm,
@@ -35,37 +36,24 @@ const ChatTest = ({
 
   const { userInfo } = useUserStore();
   const ChatBoxRef = useRef<ComponentRef>(null);
-  const { appDetail } = useAppStore();
+  const { appDetail } = useContextSelector(AppContext, (v) => v);
 
   const { watch } = editForm;
+  const chatConfig = watch('chatConfig');
 
   const [workflowData, setWorkflowData] = useSafeState({
     nodes: appDetail.modules || [],
     edges: appDetail.edges || []
   });
-  const userGuideModule = useCreation(
-    () => getGuideModule(workflowData.nodes),
-    [workflowData.nodes]
-  );
 
   const startChat = useMemoizedFn(
     async ({ chatList, controller, generatingMessage, variables }: StartChatFnProps) => {
       if (!workflowData) return Promise.reject('workflowData is empty');
 
       /* get histories */
-      let historyMaxLen = 6;
-      workflowData?.nodes.forEach((node) => {
-        node.inputs.forEach((input) => {
-          if (
-            (input.key === NodeInputKeyEnum.history ||
-              input.key === NodeInputKeyEnum.historyMaxAmount) &&
-            typeof input.value === 'number'
-          ) {
-            historyMaxLen = Math.max(historyMaxLen, input.value);
-          }
-        });
-      });
-      const history = chatList.slice(-(historyMaxLen * 2) - 2, -2);
+      let historyMaxLen = getMaxHistoryLimitFromNodes(workflowData.nodes);
+
+      const history = chatList.slice(-historyMaxLen - 2, -2);
 
       // 流请求，获取数据
       const { responseText, responseData } = await streamFetch({
@@ -104,7 +92,7 @@ const ChatTest = ({
     return () => {
       wat.unsubscribe();
     };
-  }, []);
+  }, [setWorkflowData, watch]);
 
   return (
     <Flex
@@ -141,7 +129,7 @@ const ChatTest = ({
           appAvatar={appDetail.avatar}
           userAvatar={userInfo?.avatar}
           showMarkIcon
-          userGuideModule={userGuideModule}
+          chatConfig={chatConfig}
           showFileSelector={checkChatSupportSelectFileByModules(workflowData.nodes)}
           onStartChat={startChat}
           onDelMessage={() => {}}

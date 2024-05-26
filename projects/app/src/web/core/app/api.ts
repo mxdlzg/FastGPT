@@ -1,7 +1,12 @@
 import { GET, POST, DELETE, PUT } from '@/web/common/api/request';
-import type { AppDetailType, AppListItemType } from '@fastgpt/global/core/app/type.d';
+import type {
+  AppDetailType,
+  AppListItemType,
+  ChatInputGuideConfigType
+} from '@fastgpt/global/core/app/type.d';
 import type { GetAppChatLogsParams } from '@/global/core/api/appReq.d';
 import { AppUpdateParams, CreateAppParams } from '@/global/core/app/api';
+import { PaginationProps, PaginationResponse } from '@fastgpt/web/common/fetch/type';
 
 /**
  * 获取模型列表
@@ -22,7 +27,7 @@ export const delModelById = (id: string) => DELETE(`/core/app/del?appId=${id}`);
 /**
  * 根据 ID 获取模型
  */
-export const getModelById = (id: string) => GET<AppDetailType>(`/core/app/detail?appId=${id}`);
+export const getAppDetailById = (id: string) => GET<AppDetailType>(`/core/app/detail?appId=${id}`);
 
 /**
  * 根据 ID 更新模型

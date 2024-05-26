@@ -31,6 +31,7 @@ export const AiChatModule: FlowNodeTemplateType = {
   intro: 'AI 大模型对话',
   showStatus: true,
   isTool: true,
+  version: '481',
   inputs: [
     Input_Template_SettingAiModel,
     // --- settings modal
@@ -88,6 +89,7 @@ export const AiChatModule: FlowNodeTemplateType = {
     {
       id: NodeOutputKeyEnum.history,
       key: NodeOutputKeyEnum.history,
+      required: true,
       label: 'core.module.output.label.New context',
       description: 'core.module.output.description.New context',
       valueType: WorkflowIOValueTypeEnum.chatHistory,
@@ -96,6 +98,7 @@ export const AiChatModule: FlowNodeTemplateType = {
     {
       id: NodeOutputKeyEnum.answerText,
       key: NodeOutputKeyEnum.answerText,
+      required: true,
       label: 'core.module.output.label.Ai response content',
       description: 'core.module.output.description.Ai response content',
       valueType: WorkflowIOValueTypeEnum.string,

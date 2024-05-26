@@ -1,9 +1,11 @@
-import { markdownProcess, simpleMarkdownText } from '@fastgpt/global/common/string/markdown';
+import { markdownProcess } from '@fastgpt/global/common/string/markdown';
 import { uploadMongoImg } from '../image/controller';
 import { MongoImageTypeEnum } from '@fastgpt/global/common/file/image/constants';
 import { addHours } from 'date-fns';
 
 import { WorkerNameEnum, runWorker } from '../../../worker/utils';
+import fs from 'fs';
+import { detectFileEncoding } from '@fastgpt/global/common/file/tools';
 import { ReadFileResponse } from '../../../worker/file/type';
 import {DatasetSchemaType} from "@fastgpt/global/core/dataset/type";
 import {initPdfText} from "../../../worker/file/extension/unstructured";
@@ -29,16 +31,43 @@ export const initMarkdownText = ({
       })
   });
 
-export const readFileRawContent = async ({
+export type readRawTextByLocalFileParams = {
+  teamId: string;
+  path: string;
+  metadata?: Record<string, any>;
+};
+export const readRawTextByLocalFile = async (params: readRawTextByLocalFileParams) => {
+  const { path } = params;
+
+  const extension = path?.split('.')?.pop()?.toLowerCase() || '';
+
+  const buffer = fs.readFileSync(path);
+  const encoding = detectFileEncoding(buffer);
+
+  const { rawText } = await readRawContentByFileBuffer({
+    extension,
+    isQAImport: false,
+    teamId: params.teamId,
+    encoding,
+    buffer,
+    metadata: params.metadata
+  });
+
+  return {
+    rawText
+  };
+};
+
+export const readRawContentByFileBuffer = async ({
   extension,
-  csvFormat,
+  isQAImport,
   teamId,
   buffer,
   encoding,
   metadata,
     dataset
 }: {
-  csvFormat?: boolean;
+  isQAImport?: boolean;
   extension: string;
   teamId: string;
   buffer: Buffer;
@@ -46,9 +75,8 @@ export const readFileRawContent = async ({
   metadata?: Record<string, any>;
   dataset?: DatasetSchemaType;
 }) => {
-  const result = await runWorker<ReadFileResponse>(WorkerNameEnum.readFile, {
+  let result = await runWorker<ReadFileResponse>(WorkerNameEnum.readFile, {
     extension,
-    csvFormat,
     encoding,
     buffer,
     metadata,
@@ -62,7 +90,7 @@ export const readFileRawContent = async ({
       teamId: teamId,
       metadata: metadata,
       dataset: dataset,
-      pageElements: result?.metadata? result?.metadata["elements"] : []
+      pageElements: result.metadata? result.metadata["elements"] : []
     });
   }
 
@@ -75,11 +103,15 @@ export const readFileRawContent = async ({
     });
   }
 
-  return result;
-};
+  if (['csv', 'xlsx'].includes(extension)) {
+    // qa data
+    if (isQAImport) {
+      result.rawText = result.rawText || '';
+    } else {
+      result.rawText = result.formatText || '';
+    }
+  }
 
-export const htmlToMarkdown = async (html?: string | null) => {
-  const md = await runWorker<string>(WorkerNameEnum.htmlStr2Md, { html: html || '' });
-
-  return simpleMarkdownText(md);
+  const {rawText} = result;
+  return { rawText };
 };

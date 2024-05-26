@@ -25,6 +25,7 @@ export const ContextExtractModule: FlowNodeTemplateType = {
   intro: '可从文本中提取指定的数据，例如：sql语句、搜索关键词、代码等',
   showStatus: true,
   isTool: true,
+  version: '481',
   inputs: [
     {
       ...Input_Template_SelectAIModel,
@@ -59,25 +60,20 @@ export const ContextExtractModule: FlowNodeTemplateType = {
     }
   ],
   outputs: [
-    // {
-    //   id: NodeOutputKeyEnum.success,
-    //   key: NodeOutputKeyEnum.success,
-    //   label: '字段完全提取',
-    //   valueType: WorkflowIOValueTypeEnum.boolean,
-    //   type: FlowNodeOutputTypeEnum.source
-    // },
-    // {
-    //   id: NodeOutputKeyEnum.failed,
-    //   key: NodeOutputKeyEnum.failed,
-    //   label: '提取字段缺失',
-    //   description: '存在一个或多个字段未提取成功。尽管使用了默认值也算缺失。',
-    //   valueType: WorkflowIOValueTypeEnum.boolean,
-    //   type: FlowNodeOutputTypeEnum.source
-    // },
+    {
+      id: NodeOutputKeyEnum.success,
+      key: NodeOutputKeyEnum.success,
+      label: '字段完全提取',
+      required: true,
+      description: '提取字段全部填充时返回 true （模型提取或使用默认值均属于成功）',
+      valueType: WorkflowIOValueTypeEnum.boolean,
+      type: FlowNodeOutputTypeEnum.static
+    },
     {
       id: NodeOutputKeyEnum.contextExtractFields,
       key: NodeOutputKeyEnum.contextExtractFields,
       label: '完整提取结果',
+      required: true,
       description: '一个 JSON 字符串，例如：{"name:":"YY","Time":"2023/7/2 18:00"}',
       valueType: WorkflowIOValueTypeEnum.string,
       type: FlowNodeOutputTypeEnum.static

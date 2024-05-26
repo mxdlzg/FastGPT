@@ -22,8 +22,9 @@ declare global {
   var whisperModel: WhisperModelType;
   var reRankModels: ReRankModelItemType[];
 
-  var tiktokenWorker: {
+  var tiktokenWorkers: {
+    index: number;
     worker: Worker;
     callbackMap: Record<string, (e: number) => void>;
-  };
+  }[];
 }

@@ -5,7 +5,7 @@ import { BucketNameEnum, bucketNameMap } from '@fastgpt/global/common/file/const
 import { getNanoid } from '@fastgpt/global/common/string/tools';
 import { tmpFileDirPath } from './constants';
 
-type FileType = {
+export type FileType = {
   fieldname: string;
   originalname: string;
   encoding: string;
