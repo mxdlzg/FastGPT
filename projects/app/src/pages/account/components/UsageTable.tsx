@@ -59,7 +59,7 @@ const UsageTable = () => {
   const [selectTmbId, setSelectTmbId] = useState(userInfo?.team?.tmbId);
   const { data: members = [] } = useQuery(['getMembers', userInfo?.team?.teamId], () => {
     if (!userInfo?.team?.teamId) return [];
-    return getTeamMembers(userInfo.team.teamId);
+    return getTeamMembers();
   });
   const tmbList = useMemo(
     () =>
@@ -105,7 +105,7 @@ const UsageTable = () => {
         px={[3, 8]}
         alignItems={['flex-end', 'center']}
       >
-        {tmbList.length > 1 && userInfo?.team?.canWrite && (
+        {tmbList.length > 1 && userInfo?.team?.permission.hasWritePer && (
           <Flex alignItems={'center'}>
             <Box mr={2} flexShrink={0}>
               {t('support.user.team.member')}

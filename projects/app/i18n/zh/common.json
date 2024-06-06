@@ -1,7 +1,9 @@
 {
   "Add new": "新增",
   "App": "应用",
+  "Code editor": "代码编辑",
   "Export": "导出",
+  "Field name": "字段名",
   "Folder": "文件夹",
   "Is open": "是否开启",
   "Login": "登录",
@@ -182,7 +184,7 @@
       "not support": "您的浏览器不支持语音输入"
     },
     "system": {
-      "Commercial version function": "商业版特有功能",
+      "Commercial version function": "请升级商业版后使用该功能: https://fastgpt.in",
       "Help Chatbot": "机器人助手",
       "Use Helper": "使用帮助"
     },
@@ -475,7 +477,7 @@
         "context total length": "上下文总长度",
         "module cq": "问题分类列表",
         "module cq result": "分类结果",
-        "module extract description": "提取要求描述",
+        "module extract description": "提取背景描述",
         "module extract result": "提取结果",
         "module historyPreview": "完整记录",
         "module http body": "请求体",
@@ -1218,6 +1220,8 @@
     "Tools": "工具"
   },
   "permission": {
+    "Default permission": "默认权限",
+    "Manage": "管理",
     "Private": "私有",
     "Private Tip": "仅自己可用",
     "Public": "团队",
@@ -1574,7 +1578,7 @@
       "Processing invitations": "处理邀请",
       "Processing invitations Tips": "你有{{amount}}个需要处理的团队邀请",
       "Reinvite": "重新邀请",
-      "Remove Member Confirm Tip": "确认将 {{username}} 移出团队？其所有资源将转让到团队创建者的账户内。",
+      "Remove Member Confirm Tip": "确认将 {{username}} 移出团队？",
       "Remove Member Failed": "移除团队成员异常",
       "Remove Member Success": "移除团队成员成功",
       "Remove Member Tip": "移出团队",

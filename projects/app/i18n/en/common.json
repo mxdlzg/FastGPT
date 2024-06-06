@@ -1,7 +1,9 @@
 {
   "Add new": "Add new",
   "App": "App",
+  "Code editor": "Code edit",
   "Export": "Export",
+  "Field name": "Name",
   "Folder": "Folder",
   "Is open": "Opened",
   "Login": "Login",
@@ -1210,6 +1212,8 @@
     "Tools": "Tools"
   },
   "permission": {
+    "Default permission": "Default permission",
+    "Manage": "Manage",
     "Private": "Private",
     "Private Tip": "Only available to oneself",
     "Public": "Team",

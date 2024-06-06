@@ -1,14 +1,11 @@
+import { getErrText } from '@fastgpt/global/common/error/utils';
+import { replaceSensitiveText } from '@fastgpt/global/common/string/tools';
 import type { ChatItemType } from '@fastgpt/global/core/chat/type.d';
 import {
   WorkflowIOValueTypeEnum,
   NodeOutputKeyEnum
 } from '@fastgpt/global/core/workflow/constants';
-import { FlowNodeTypeEnum } from '@fastgpt/global/core/workflow/node/constant';
-import {
-  RuntimeEdgeItemType,
-  RuntimeNodeItemType
-} from '@fastgpt/global/core/workflow/runtime/type';
-import { StoreNodeItemType } from '@fastgpt/global/core/workflow/type/index.d';
+import { RuntimeEdgeItemType } from '@fastgpt/global/core/workflow/runtime/type';
 
 export const filterToolNodeIdByEdges = ({
   nodeId,
@@ -90,4 +87,15 @@ export const removeSystemVariable = (variables: Record<string, any>) => {
   delete copyVariables.cTime;
 
   return copyVariables;
+};
+
+export const formatHttpError = (error: any) => {
+  return {
+    message: getErrText(error),
+    data: error?.response?.data,
+    name: error?.name,
+    method: error?.config?.method,
+    code: error?.code,
+    status: error?.status
+  };
 };

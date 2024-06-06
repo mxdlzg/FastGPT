@@ -7,7 +7,8 @@ import { queryChatInputGuideList } from '@/web/core/chat/inputGuide/api';
 import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
 import { useTranslation } from 'next-i18next';
 import HighlightText from '@fastgpt/web/components/common/String/HighlightText';
-import { useChatProviderStore } from '../Provider';
+import { ChatBoxContext } from '../Provider';
+import { useContextSelector } from 'use-context-selector';
 
 export default function InputGuideBox({
   appId,
@@ -22,7 +23,8 @@ export default function InputGuideBox({
 }) {
   const { t } = useTranslation();
   const { chatT } = useI18n();
-  const { chatInputGuide } = useChatProviderStore();
+  const chatInputGuide = useContextSelector(ChatBoxContext, (v) => v.chatInputGuide);
+  const outLinkAuthData = useContextSelector(ChatBoxContext, (v) => v.outLinkAuthData);
 
   const { data = [] } = useRequest2(
     async () => {
@@ -30,7 +32,8 @@ export default function InputGuideBox({
       return await queryChatInputGuideList(
         {
           appId,
-          searchKey: text.slice(0, 50)
+          searchKey: text.slice(0, 50),
+          ...outLinkAuthData
         },
         chatInputGuide.customUrl ? chatInputGuide.customUrl : undefined
       );

@@ -1,7 +1,6 @@
-import React, { useContext, createContext, useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAudioPlay } from '@/web/common/utils/voice';
 import { OutLinkChatAuthProps } from '@fastgpt/global/support/permission/chat';
-import { StoreNodeItemType } from '@fastgpt/global/core/workflow/type/index.d';
 import {
   AppChatConfigType,
   AppTTSConfigType,
@@ -15,6 +14,7 @@ import {
   defaultTTSConfig,
   defaultWhisperConfig
 } from '@fastgpt/global/core/app/constants';
+import { createContext } from 'use-context-selector';
 
 type useChatStoreType = OutLinkChatAuthProps & {
   welcomeText: string;
@@ -45,8 +45,9 @@ type useChatStoreType = OutLinkChatAuthProps & {
   setChatHistories: React.Dispatch<React.SetStateAction<ChatSiteItemType[]>>;
   isChatting: boolean;
   chatInputGuide: ChatInputGuideConfigType;
+  outLinkAuthData: OutLinkChatAuthProps;
 };
-const StateContext = createContext<useChatStoreType>({
+export const ChatBoxContext = createContext<useChatStoreType>({
   welcomeText: '',
   variableList: [],
   questionGuide: false,
@@ -98,7 +99,8 @@ const StateContext = createContext<useChatStoreType>({
   chatInputGuide: {
     open: false,
     customUrl: ''
-  }
+  },
+  outLinkAuthData: {}
 });
 
 export type ChatProviderProps = OutLinkChatAuthProps & {
@@ -108,8 +110,6 @@ export type ChatProviderProps = OutLinkChatAuthProps & {
   chatId?: string;
   children: React.ReactNode;
 };
-
-export const useChatProviderStore = () => useContext(StateContext);
 
 const Provider = ({
   shareId,
@@ -130,6 +130,16 @@ const Provider = ({
     chatInputGuide = defaultChatInputGuideConfig
   } = useMemo(() => chatConfig, [chatConfig]);
 
+  const outLinkAuthData = useMemo(
+    () => ({
+      shareId,
+      outLinkUid,
+      teamId,
+      teamToken
+    }),
+    [shareId, outLinkUid, teamId, teamToken]
+  );
+
   // segment audio
   const [audioPlayingChatId, setAudioPlayingChatId] = useState<string>();
   const {
@@ -143,10 +153,7 @@ const Provider = ({
     splitText2Audio
   } = useAudioPlay({
     ttsConfig,
-    shareId,
-    outLinkUid,
-    teamId,
-    teamToken
+    ...outLinkAuthData
   });
 
   const autoTTSResponse =
@@ -183,10 +190,11 @@ const Provider = ({
     chatHistories,
     setChatHistories,
     isChatting,
-    chatInputGuide
+    chatInputGuide,
+    outLinkAuthData
   };
 
-  return <StateContext.Provider value={value}>{children}</StateContext.Provider>;
+  return <ChatBoxContext.Provider value={value}>{children}</ChatBoxContext.Provider>;
 };
 
 export default React.memo(Provider);
